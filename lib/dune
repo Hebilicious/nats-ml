@@ -1,0 +1,4 @@
+(library
+ (name nats_client)
+ (public_name nats-client)
+ (libraries yojson))

@@ -1,0 +1,9 @@
+_build/
+.DS_Store
+*.install
+*.merlin
+/.ocamlformat
+.agents/
+.claude/
+/.prototools
+/skills-lock.json

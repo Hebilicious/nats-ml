@@ -1,0 +1,4 @@
+(library
+ (name nats_client_async)
+ (public_name nats-client-async)
+ (libraries core async async_unix uri yojson nats-client))
