@@ -32,7 +32,7 @@ dune build @install
 dune install
 ```
 
-If you are developing against this repository locally, `proto` will provision the OCaml toolchain from [`.prototools`](./.prototools).
+If you are developing against this repository locally, use `proto` to install the toolchain from [`.prototools`](./.prototools), then run `dune` and `opam` directly from that shell environment.
 
 ## Features
 
@@ -144,10 +144,9 @@ The intended release path is PR-based:
 
 1. Each user-facing PR adds a fragment under `.changes/` with a `patch`, `minor`, or `major` header.
 2. The `release-pr.yml` workflow aggregates those fragments into `CHANGES.md` and opens or updates a `release: vX.Y.Z` PR.
-3. Merge the release PR.
-4. Tag that merge commit with `vX.Y.Z` and push the tag.
-5. The `publish.yml` workflow runs `dune-release` and `opam-publish` to submit the release to `opam-repository`.
-6. After the `opam-repository` PR is merged, users can install the packages with `opam install`.
+3. Merging that release PR automatically creates and pushes the `vX.Y.Z` tag from the merge commit.
+4. The `publish.yml` workflow runs on that tag and uses `dune-release` plus `opam-publish` to submit the release to `opam-repository`.
+5. After the `opam-repository` PR is merged, users can install the packages with `opam install`.
 
 ## License
 

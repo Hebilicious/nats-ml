@@ -47,9 +47,8 @@ jobs:
             This PR was prepared from `.changes/` fragments and updates `CHANGES.md`.
 
             After this PR is merged:
-            1. Tag `v${{ steps.prepare.outputs.next_version }}` from `main`.
-            2. Push the tag.
-            3. Let `publish.yml` run `dune-release` and `opam-publish`.
+            1. `tag-release.yml` will create and push `v${{ steps.prepare.outputs.next_version }}` from the merge commit.
+            2. `publish.yml` will run `dune-release` and `opam-publish`.
           delete-branch: true
           add-paths: |
             CHANGES.md
