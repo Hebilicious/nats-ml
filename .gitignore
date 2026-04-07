@@ -3,6 +3,5 @@ _build/
 *.install
 *.merlin
 /.ocamlformat
-.agents/
 .claude/
 /skills-lock.json
