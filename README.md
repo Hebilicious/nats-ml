@@ -1,4 +1,4 @@
-# nats-client
+# NATS - OCaml Client & Async
 
 Lean OCaml NATS clients built around a small protocol core and an `Async` runtime.
 
@@ -109,6 +109,57 @@ val Nats_client_async.request :
 
 `publish` and `publish_json` are fire-and-forget. If the client is unavailable, they are silently dropped.
 
+## Publish-Subscribe Example
+
+Start NATS locally:
+
+```sh
+docker run --rm --name nats-server -p 4222:4222 nats:latest
+```
+
+Then run code like this:
+
+```ocaml
+open Core
+open Async
+
+let main () =
+  let uri = Uri.of_string "nats://127.0.0.1:4222" in
+  Nats_client_async.connect (Some uri)
+  >>= fun client ->
+  Monitor.protect
+    ~finally:(fun () -> Nats_client_async.close client)
+    (fun () ->
+      Nats_client_async.subscribe client ~subject:"greet.*" ()
+      >>= function
+      | Error error -> Error.raise error
+      | Ok subscription ->
+          List.iter [ "greet.sue"; "greet.bob"; "greet.pam" ] ~f:(fun subject ->
+              Nats_client_async.publish client ~subject "hello");
+          Pipe.read subscription.messages
+          >>= function
+          | `Eof -> Deferred.unit
+          | `Ok message ->
+              printf "'%s' received on %s\n"
+                message.Nats_client.Protocol.payload
+                message.subject;
+              Deferred.unit)
+
+let () = Thread_safe.block_on_async_exn main
+```
+
+There is also a runnable version in [examples/natsbyexample/publish_subscribe.ml](./examples/natsbyexample/publish_subscribe.ml).
+
+## Quick Start With Docker
+
+Start a local NATS server with Docker:
+
+```sh
+docker run --rm --name nats-server -p 4222:4222 nats:latest
+```
+
+In another shell, build or run the examples from this repo. All examples default to `nats://127.0.0.1:4222`, so you do not need to set `NATS_URL` unless you want a different server.
+
 ## Examples
 
 Build the example executables with:
@@ -120,15 +171,15 @@ dune build examples/natsbyexample/request_reply.exe
 dune build examples/natsbyexample/json_for_message_payloads.exe
 ```
 
-Run them against a local NATS server by setting `NATS_URL` if needed:
+Run them against the Docker NATS server:
 
 ```sh
-NATS_URL=nats://127.0.0.1:4222 dune exec ./examples/protocol_demo.exe
-NATS_URL=nats://127.0.0.1:4222 dune exec ./examples/publish_json.exe
-NATS_URL=nats://127.0.0.1:4222 dune exec ./examples/request_reply.exe
-NATS_URL=nats://127.0.0.1:4222 dune exec ./examples/natsbyexample/publish_subscribe.exe
-NATS_URL=nats://127.0.0.1:4222 dune exec ./examples/natsbyexample/request_reply.exe
-NATS_URL=nats://127.0.0.1:4222 dune exec ./examples/natsbyexample/json_for_message_payloads.exe
+dune exec ./examples/protocol_demo.exe
+dune exec ./examples/publish_json.exe
+dune exec ./examples/request_reply.exe
+dune exec ./examples/natsbyexample/publish_subscribe.exe
+dune exec ./examples/natsbyexample/request_reply.exe
+dune exec ./examples/natsbyexample/json_for_message_payloads.exe
 ```
 
 The examples cover:
@@ -137,6 +188,12 @@ The examples cover:
 - JSON publishing with headers
 - request/reply round trips
 - a `natsbyexample` directory with publish/subscribe, request/reply, and JSON payload examples
+
+To run against another server, set `NATS_URL`, for example:
+
+```sh
+NATS_URL=nats://demo.nats.io:4222 dune exec ./examples/publish_json.exe
+```
 
 ## Release Flow
 

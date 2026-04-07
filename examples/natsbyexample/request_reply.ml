@@ -1,6 +1,10 @@
 open Core
 open Async
 
+(* Run a local server first:
+   docker run --rm --name nats-server -p 4222:4222 nats:latest
+*)
+
 let url () =
   match Sys.getenv "NATS_URL" with
   | Some value -> Uri.of_string value

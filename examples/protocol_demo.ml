@@ -1,5 +1,9 @@
 open Core
 
+(* Run a local server first:
+   docker run --rm --name nats-server -p 4222:4222 nats:latest
+*)
+
 let () =
   let connect =
     {
