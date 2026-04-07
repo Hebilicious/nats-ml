@@ -1,0 +1,32 @@
+name: Release PR
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup toolchain
+        uses: moonrepo/setup-toolchain@v0
+        with:
+          auto-install: true
+
+      - name: Install dependencies
+        run: opam install . --deps-only --with-test --yes
+
+      - name: Install release tools
+        run: opam install dune-release opam-publish --yes
+
+      - name: Prepare release
+        run: scripts/prepare-release.sh check
