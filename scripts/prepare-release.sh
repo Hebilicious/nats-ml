@@ -185,8 +185,10 @@ publish_release() {
     exit 1
   fi
 
-  dune-release opam pkg
-  yes | dune-release opam submit --user Hebilicious --no-auto-open
+  # Preserve the leading `v` in Git tags so the generated release archive URL
+  # matches GitHub's releases/download/vX.Y.Z/... path.
+  dune-release opam pkg --keep-v
+  yes | dune-release opam submit --keep-v --user Hebilicious --no-auto-open
 }
 
 require git
