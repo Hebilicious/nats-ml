@@ -190,8 +190,8 @@ publish_release() {
   # Preserve the leading `v` in Git tags so the generated release archive URL
   # matches GitHub's releases/download/vX.Y.Z/... path, while still pointing at
   # the archive filename created by `dune-release distrib`.
-  dune-release opam pkg --keep-v --tag "$tag" --dist-file "$dist_file"
-  yes | dune-release opam submit --keep-v --tag "$tag" --dist-file "$dist_file" --user Hebilicious --no-auto-open
+  dune-release opam pkg --keep-v --tag "$tag" --pkg-version "$version" --dist-file "$dist_file"
+  yes | dune-release opam submit --keep-v --tag "$tag" --pkg-version "$version" --dist-file "$dist_file" --user Hebilicious --no-auto-open
 }
 
 require git
