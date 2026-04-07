@@ -14,12 +14,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up OCaml
-        uses: ocaml/setup-ocaml@v3
-        with:
-          ocaml-compiler: 5.4.1
+      - name: Install proto
+        run: |
+          curl -fsSL https://moonrepo.dev/install/proto.sh | bash -s -- --yes
+          echo "$HOME/.proto/bin" >> "$GITHUB_PATH"
+
+      - name: Install toolchain and deps
+        run: |
+          proto install
+          proto exec --tools-from-config -- opam install . --deps-only --with-test --yes
 
       - name: Run tests
-        run: |
-          opam install . --deps-only --with-test --yes
-          opam exec -- dune runtest
+        run: proto exec --tools-from-config -- dune runtest

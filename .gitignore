@@ -5,5 +5,4 @@ _build/
 /.ocamlformat
 .agents/
 .claude/
-/.prototools
 /skills-lock.json

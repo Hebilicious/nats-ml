@@ -1,0 +1,5 @@
+[plugins.tools]
+ocaml = "github://Hebilicious/proto-ocaml"
+
+[tools.ocaml]
+version = "5.4.1"
