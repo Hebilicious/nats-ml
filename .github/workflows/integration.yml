@@ -9,6 +9,15 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      NATS_ML_INTEGRATION_OPAMROOT: ${{ github.workspace }}/.opam-integration-root
+      NATS_ML_INTEGRATION_SWITCH: nats-ml-integration
+      NATS_URL: nats://127.0.0.1:42229
+    services:
+      nats:
+        image: nats:2.10-alpine
+        ports:
+          - 42229:4222
 
     steps:
       - name: Checkout
@@ -19,5 +28,18 @@ jobs:
         with:
           auto-install: true
 
+      - name: Restore integration cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .opam-integration-root
+            _build
+          key: integration-${{ runner.os }}-${{ hashFiles('dune-project', 'nats-client.opam', 'nats-client-async.opam', 'tests/**', '.github/workflows/integration.yml') }}
+          restore-keys: |
+            integration-${{ runner.os }}-
+
+      - name: Install pinned deps
+        run: ./tests/setup-integration-switch.sh
+
       - name: Run integration tests
-        run: ./tests/test-integration.sh
+        run: opam exec --root="$NATS_ML_INTEGRATION_OPAMROOT" --switch="$NATS_ML_INTEGRATION_SWITCH" -- ./tests/run-integration-checks.sh

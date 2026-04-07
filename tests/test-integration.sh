@@ -1,61 +1,13 @@
 #!/usr/bin/env bash
 
-# Runs the Docker-backed integration flow and the standalone consumer fixture.
+# Sets up the pinned toolchain locally, then runs the shared integration checks.
 
 set -euo pipefail
 
-REPO_ROOT=$(git -C "$(dirname -- "$0")/.." rev-parse --show-toplevel)
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+REPO_ROOT=$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)
+OPAM_ROOT=${NATS_ML_INTEGRATION_OPAMROOT:-$REPO_ROOT/.opam-integration-root}
 SWITCH_NAME=${NATS_ML_INTEGRATION_SWITCH:-nats-ml-integration}
-NATS_IMAGE=${NATS_IMAGE:-nats:2.10-alpine}
-NATS_PORT=${NATS_PORT:-42229}
-CONTAINER_NAME="nats-ml-integration-${NATS_PORT}-$$"
-INSTALL_PREFIX="$REPO_ROOT/_integration-install"
-
-cleanup() {
-  docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
-}
-
-if ! command -v docker >/dev/null 2>&1; then
-  echo "docker is required for the integration test." >&2
-  exit 1
-fi
-
-if ! docker info >/dev/null 2>&1; then
-  echo "Docker is unavailable. Start the Docker daemon and rerun the test." >&2
-  exit 1
-fi
-
-trap cleanup EXIT
 
 "$REPO_ROOT/tests/setup-integration-switch.sh"
-
-docker run --rm -d --name "$CONTAINER_NAME" -p "127.0.0.1:${NATS_PORT}:4222" \
-  "$NATS_IMAGE" >/dev/null
-
-ready=""
-for _ in $(seq 1 30); do
-  if docker logs "$CONTAINER_NAME" 2>&1 | grep -q "Server is ready"; then
-    ready=1
-    break
-  fi
-  sleep 1
-done
-
-if [[ -z "$ready" ]]; then
-  echo "NATS failed to become ready in Docker. Recent logs:" >&2
-  docker logs "$CONTAINER_NAME" >&2 || true
-  exit 1
-fi
-
-export NATS_URL="nats://127.0.0.1:${NATS_PORT}"
-
-opam exec --switch="$SWITCH_NAME" -- dune build @install @runtest
-opam exec --switch="$SWITCH_NAME" -- dune exec ./tests/real_nats_integration.exe
-rm -rf "$INSTALL_PREFIX"
-opam exec --switch="$SWITCH_NAME" -- dune install --prefix "$INSTALL_PREFIX"
-
-(
-  cd "$REPO_ROOT/tests/consumer_fixture"
-  OCAMLPATH="${INSTALL_PREFIX}/lib${OCAMLPATH+:${OCAMLPATH}}" \
-    opam exec --switch="$SWITCH_NAME" -- dune exec ./consumer.exe
-)
+opam exec --root="$OPAM_ROOT" --switch="$SWITCH_NAME" -- "$REPO_ROOT/tests/run-integration-checks.sh"
