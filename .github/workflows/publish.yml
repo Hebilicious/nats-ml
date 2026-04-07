@@ -33,4 +33,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ github.token }}
-        run: scripts/prepare-release.sh publish
+        run: opam exec -- scripts/prepare-release.sh publish

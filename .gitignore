@@ -2,6 +2,5 @@ _build/
 .DS_Store
 *.install
 *.merlin
-/.ocamlformat
 .claude/
 /skills-lock.json
