@@ -203,8 +203,10 @@ The intended release path is PR-based:
 1. Each user-facing PR adds a fragment under `.changes/` with a `patch`, `minor`, or `major` header.
 2. The `release-pr.yml` workflow aggregates those fragments into `CHANGES.md` and opens or updates a `release: vX.Y.Z` PR.
 3. Merging that release PR automatically creates and pushes the `vX.Y.Z` tag from the merge commit.
-4. The `publish.yml` workflow runs on that tag and uses `dune-release` plus `opam-publish` to submit the release to `opam-repository`.
-5. After the `opam-repository` PR is merged, users can install the packages with `opam install`.
+4. The tag workflow immediately dispatches `publish.yml` for that exact tag. This is required because tags created by a GitHub Actions workflow with `GITHUB_TOKEN` do not trigger downstream `push` workflows.
+5. The `publish.yml` workflow checks out the tag, creates the GitHub release with `dune-release publish`, and submits the package to `opam-repository` with `dune-release opam submit`.
+6. The repo must have an `OPAM_PUBLISH_GH_TOKEN` secret configured for the `opam-repository` submission step.
+7. After the `opam-repository` PR is merged, users can install the packages with `opam install`.
 
 ## License
 

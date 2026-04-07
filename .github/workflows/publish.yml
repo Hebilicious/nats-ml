@@ -1,9 +1,12 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish
+        required: true
+        type: string
 
 jobs:
   publish:
@@ -13,7 +16,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout
+      - name: Checkout workflow baseline
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -23,14 +26,81 @@ jobs:
         with:
           auto-install: true
 
+      - name: Capture OCaml toolchain paths
+        id: ocaml-bin
+        run: |
+          ocaml_bin="$(proto bin ocaml)"
+          switch_bin="$(dirname "$ocaml_bin")"
+          tool_root="$(dirname "$(dirname "$switch_bin")")"
+          echo "switch_bin=$switch_bin" >> "$GITHUB_OUTPUT"
+          echo "tool_root=$tool_root" >> "$GITHUB_OUTPUT"
+
+      - name: Copy release script from workflow baseline
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-workflow"
+          cp scripts/prepare-release.sh "$RUNNER_TEMP/release-workflow/prepare-release.sh"
+          chmod +x "$RUNNER_TEMP/release-workflow/prepare-release.sh"
+
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+
       - name: Install dependencies
-        run: opam install . --deps-only --with-test --yes
+        run: |
+          export OPAMROOT="${{ steps.ocaml-bin.outputs.tool_root }}/.opam-root"
+          export OPAMSWITCH="${{ steps.ocaml-bin.outputs.tool_root }}"
+          export OPAM_SWITCH_PREFIX="${{ steps.ocaml-bin.outputs.tool_root }}/_opam"
+          export PATH="${{ steps.ocaml-bin.outputs.switch_bin }}:${{ steps.ocaml-bin.outputs.tool_root }}/bin:$PATH"
+          "${{ steps.ocaml-bin.outputs.tool_root }}/bin/opam" install . --deps-only --with-test --yes
 
       - name: Install release tools
-        run: opam install dune-release opam-publish --yes
+        run: |
+          export OPAMROOT="${{ steps.ocaml-bin.outputs.tool_root }}/.opam-root"
+          export OPAMSWITCH="${{ steps.ocaml-bin.outputs.tool_root }}"
+          export OPAM_SWITCH_PREFIX="${{ steps.ocaml-bin.outputs.tool_root }}/_opam"
+          export PATH="${{ steps.ocaml-bin.outputs.switch_bin }}:${{ steps.ocaml-bin.outputs.tool_root }}/bin:$PATH"
+          "${{ steps.ocaml-bin.outputs.tool_root }}/bin/opam" install dune-release opam-publish --yes
+
+      - name: Configure dune-release GitHub token
+        env:
+          DUNE_RELEASE_TOKEN: ${{ secrets.OPAM_PUBLISH_GH_TOKEN }}
+        run: |
+          mkdir -p "$HOME/.config/dune"
+          printf '%s\n' "$DUNE_RELEASE_TOKEN" > "$HOME/.config/dune/github.token"
+          chmod 600 "$HOME/.config/dune/github.token"
+          cat > "$HOME/.config/dune/release.yml" <<EOF
+          user: Hebilicious
+          remote: https://x-access-token:${DUNE_RELEASE_TOKEN}@github.com/Hebilicious/opam-repository.git
+          local: ${RUNNER_TEMP}/opam-repository
+          EOF
+
+      - name: Clone opam-repository fork
+        env:
+          OPAM_PUBLISH_GH_TOKEN: ${{ secrets.OPAM_PUBLISH_GH_TOKEN }}
+        run: |
+          git clone --depth 1 \
+            "https://x-access-token:${OPAM_PUBLISH_GH_TOKEN}@github.com/Hebilicious/opam-repository.git" \
+            "$RUNNER_TEMP/opam-repository"
+
+      - name: Configure git author
+        run: |
+          git config --global user.name "Hebilicious"
+          git config --global user.email "hebilicious@users.noreply.github.com"
 
       - name: Publish release
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ github.token }}
-        run: opam exec -- scripts/prepare-release.sh publish
+          OPAM_PUBLISH_GH_TOKEN: ${{ secrets.OPAM_PUBLISH_GH_TOKEN }}
+          DUNE_RELEASE_LOCAL_REPO: ${{ runner.temp }}/opam-repository
+          DUNE_RELEASE_REMOTE_REPO: https://x-access-token:${{ secrets.OPAM_PUBLISH_GH_TOKEN }}@github.com/Hebilicious/opam-repository.git
+          DUNE_RELEASE_OPAM_REPO: ocaml/opam-repository
+        run: |
+          export OPAMROOT="${{ steps.ocaml-bin.outputs.tool_root }}/.opam-root"
+          export OPAMSWITCH="${{ steps.ocaml-bin.outputs.tool_root }}"
+          export OPAM_SWITCH_PREFIX="${{ steps.ocaml-bin.outputs.tool_root }}/_opam"
+          export PATH="${{ steps.ocaml-bin.outputs.switch_bin }}:${{ steps.ocaml-bin.outputs.tool_root }}/bin:$PATH"
+          export DUNE_RELEASE_GITHUB_TOKEN="$OPAM_PUBLISH_GH_TOKEN"
+          "${{ steps.ocaml-bin.outputs.tool_root }}/bin/opam" exec -- "$RUNNER_TEMP/release-workflow/prepare-release.sh" publish

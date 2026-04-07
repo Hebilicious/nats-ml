@@ -166,15 +166,27 @@ prepare_pr() {
 
 publish_release() {
   clean_worktree
-  git describe --tags --exact-match >/dev/null 2>&1 || {
+  tag="$(git describe --tags --exact-match 2>/dev/null)" || {
     echo "publish mode requires an exact v* tag on HEAD" >&2
     exit 1
   }
 
   run_checks
   dune-release distrib
-  dune-release publish
-  dune-release opam submit
+
+  if gh release view "$tag" >/dev/null 2>&1; then
+    echo "github release $tag already exists; skipping dune-release publish"
+  else
+    yes | dune-release publish
+  fi
+
+  if [ -z "${OPAM_PUBLISH_GH_TOKEN:-}" ]; then
+    echo "OPAM_PUBLISH_GH_TOKEN is required for dune-release opam submit in CI" >&2
+    exit 1
+  fi
+
+  dune-release opam pkg
+  yes | dune-release opam submit --user Hebilicious --no-auto-open
 }
 
 require git
