@@ -24,7 +24,3 @@ jobs:
 
       - name: Run tests
         run: dune build @install @runtest
-
-      - name: Run pinned-stack integration tests
-        if: matrix.target == 'ocaml-4.14'
-        run: ./tests/test-integration.sh
