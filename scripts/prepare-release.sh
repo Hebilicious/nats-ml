@@ -170,6 +170,8 @@ publish_release() {
     echo "publish mode requires an exact v* tag on HEAD" >&2
     exit 1
   }
+  version="${tag#v}"
+  dist_file="_build/nats-client-${version}.tbz"
 
   run_checks
   dune-release distrib
@@ -186,9 +188,10 @@ publish_release() {
   fi
 
   # Preserve the leading `v` in Git tags so the generated release archive URL
-  # matches GitHub's releases/download/vX.Y.Z/... path.
-  dune-release opam pkg --keep-v
-  yes | dune-release opam submit --keep-v --user Hebilicious --no-auto-open
+  # matches GitHub's releases/download/vX.Y.Z/... path, while still pointing at
+  # the archive filename created by `dune-release distrib`.
+  dune-release opam pkg --keep-v --tag "$tag" --dist-file "$dist_file"
+  yes | dune-release opam submit --keep-v --tag "$tag" --dist-file "$dist_file" --user Hebilicious --no-auto-open
 }
 
 require git
