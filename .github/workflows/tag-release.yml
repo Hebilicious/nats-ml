@@ -12,6 +12,7 @@ jobs:
     if: "${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'release: v') }}"
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
 
     steps:
@@ -45,3 +46,12 @@ jobs:
 
           git tag "$tag" "$MERGE_SHA"
           git push origin "$tag"
+
+      - name: Dispatch publish workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -eu
+          tag="${PR_TITLE#release: }"
+          gh workflow run publish.yml --ref main -f tag="$tag"

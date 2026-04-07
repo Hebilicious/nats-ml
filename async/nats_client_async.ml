@@ -56,10 +56,10 @@ let wake_pending state =
   match state.pending_signal with
   | Some signal when not (Ivar.is_full signal) ->
       state.pending_signal <- None;
-      Ivar.fill_exn signal ()
+      Ivar.fill_if_empty signal ()
   | _ -> ()
 
-let rec wait_for_pending state =
+let wait_for_pending state =
   if state.closed
   then Deferred.unit
   else
@@ -81,6 +81,17 @@ let send_result connection raw =
   | Error exn -> Or_error.of_exn exn
 
 let drop_pending state = Queue.clear state.pending
+
+let negotiate_connect (connect : Nats_client.Protocol.connect)
+    (info : Nats_client.Protocol.info) =
+  if info.Nats_client.Protocol.headers
+  then
+    {
+      connect with
+      protocol = Int.max connect.protocol 1;
+      headers = true;
+    }
+  else connect
 
 let message_of_meta (meta : Nats_client.Protocol.msg_meta) payload :
     Nats_client.Protocol.message =
@@ -204,10 +215,11 @@ and start_reconnect ?(immediate = false) state =
                   match
                     Nats_client.Protocol.parse_server_line (strip_cr line)
                   with
-                  | Info _ ->
+                  | Info info ->
                       let connection = { reader; writer } in
+                      let connect = negotiate_connect state.connect info in
                       send_raw connection
-                        (Nats_client.Protocol.encode_connect ~connect:state.connect ())
+                        (Nats_client.Protocol.encode_connect ~connect ())
                       >>= fun () -> Deferred.return connection
                   | _ -> failwith "expected INFO from server" ))
           >>= function
@@ -215,8 +227,7 @@ and start_reconnect ?(immediate = false) state =
               state.connection <- Some connection;
               state.awaiting_pong_since <- None;
               state.reconnecting <- false;
-              if not (Ivar.is_full state.connected)
-              then Ivar.fill_exn state.connected ();
+              Ivar.fill_if_empty state.connected ();
               replay_subscriptions state
               >>= fun () ->
               wake_pending state;

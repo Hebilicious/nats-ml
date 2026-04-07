@@ -28,11 +28,13 @@ The flow has four pieces:
 3. `tag-release.yml` runs when a `release: vX.Y.Z` pull request is merged into `main`.
    - It verifies that the merged PR title matches the release format.
    - It creates and pushes the corresponding `vX.Y.Z` tag from the merge commit automatically.
+   - It then dispatches `publish.yml` explicitly for that tag. This is required because tags created by a workflow with `GITHUB_TOKEN` do not trigger downstream `push` workflows.
 
-4. `publish.yml` runs when that `v*` tag is pushed.
-   - It repeats the release preflight.
+4. `publish.yml` runs via `workflow_dispatch` with the created `vX.Y.Z` tag as input.
+   - It checks out that exact tag and repeats the release preflight.
    - It runs `dune-release distrib`, `dune-release publish`, and `dune-release opam submit`.
    - `dune-release opam submit` is the standard OCaml publication path and uses the `opam-publish` submission flow under the hood to open the PR against `opam-repository`.
+   - The repo must provide an `OPAM_PUBLISH_GH_TOKEN` secret for the `opam-repository` submission step. The default repository `GITHUB_TOKEN` is not sufficient for that external PR flow.
 
 ## Release Discipline
 

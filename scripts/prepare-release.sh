@@ -166,15 +166,32 @@ prepare_pr() {
 
 publish_release() {
   clean_worktree
-  git describe --tags --exact-match >/dev/null 2>&1 || {
+  tag="$(git describe --tags --exact-match 2>/dev/null)" || {
     echo "publish mode requires an exact v* tag on HEAD" >&2
     exit 1
   }
+  version="${tag#v}"
+  dist_file="_build/nats-client-${version}.tbz"
 
   run_checks
   dune-release distrib
-  dune-release publish
-  dune-release opam submit
+
+  if gh release view "$tag" >/dev/null 2>&1; then
+    echo "github release $tag already exists; skipping dune-release publish"
+  else
+    yes | dune-release publish
+  fi
+
+  if [ -z "${OPAM_PUBLISH_GH_TOKEN:-}" ]; then
+    echo "OPAM_PUBLISH_GH_TOKEN is required for dune-release opam submit in CI" >&2
+    exit 1
+  fi
+
+  # Preserve the leading `v` in Git tags so the generated release archive URL
+  # matches GitHub's releases/download/vX.Y.Z/... path, while still pointing at
+  # the archive filename created by `dune-release distrib`.
+  dune-release opam pkg --keep-v --tag "$tag" --pkg-version "$version" --dist-file "$dist_file"
+  yes | dune-release opam submit --keep-v --tag "$tag" --pkg-version "$version" --dist-file "$dist_file" --user Hebilicious --no-auto-open
 }
 
 require git
