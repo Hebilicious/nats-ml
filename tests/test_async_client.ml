@@ -81,7 +81,7 @@ let test_connect_sends_required_handshake () =
   in
   Alcotest.(check string)
     "connect line"
-    "CONNECT {\"verbose\":false,\"pedantic\":false}"
+    "CONNECT {\"verbose\":false,\"pedantic\":false,\"protocol\":1,\"headers\":true}"
     (run_async (fun () -> Ivar.read observed));
   run_async (fun () -> Nats_client_async.close client)
 

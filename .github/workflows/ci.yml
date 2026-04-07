@@ -23,4 +23,4 @@ jobs:
         run: opam install . --deps-only --with-test --yes
 
       - name: Run tests
-        run: dune runtest
+        run: dune build @install @runtest

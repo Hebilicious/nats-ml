@@ -37,7 +37,8 @@ If you are developing against this repository locally, use `proto` to install th
 ## Features
 
 - TCP connection over `Async`
-- required NATS handshake `CONNECT {"verbose":false,"pedantic":false}\r\n`
+- required NATS handshake with automatic `protocol=1` / `headers=true`
+  negotiation when the server advertises header support
 - configurable `CONNECT` fields
 - HPUB publish with headers
 - incoming `HMSG` parsing and header delivery

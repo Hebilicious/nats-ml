@@ -1,4 +1,6 @@
 _build/
+.opam-integration-root/
+_integration-install/
 .DS_Store
 *.install
 *.merlin
