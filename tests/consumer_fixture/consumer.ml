@@ -1,3 +1,4 @@
+(* Minimal external consumer that links against the installed package and exercises it. *)
 open Core
 open Async
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Creates the pinned opam switch used by the integration test workflow.
+
 set -euo pipefail
 
 REPO_ROOT=$(git -C "$(dirname -- "$0")/.." rev-parse --show-toplevel)

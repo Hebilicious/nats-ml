@@ -1,3 +1,4 @@
+; Builds the standalone consumer fixture against installed nats-client libraries.
 (executable
  (name consumer)
  (libraries core async async_unix uri yojson nats-client nats-client-async)

@@ -1,3 +1,4 @@
+(* End-to-end integration check against a real NATS server started outside the process. *)
 open Core
 open Async
 

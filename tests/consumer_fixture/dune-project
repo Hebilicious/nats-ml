@@ -1,3 +1,4 @@
+; Separate Dune project for the standalone consumer fixture used in integration tests.
 (lang dune 3.19)
 
 (name consumer_fixture)
