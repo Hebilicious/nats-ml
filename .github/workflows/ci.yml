@@ -14,15 +14,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install proto
-        run: |
-          curl -fsSL https://moonrepo.dev/install/proto.sh | bash -s -- --yes
-          echo "$HOME/.proto/bin" >> "$GITHUB_PATH"
+      - name: Setup toolchain
+        uses: moonrepo/setup-toolchain@v0
+        with:
+          auto-install: true
 
-      - name: Install toolchain and deps
-        run: |
-          proto install
-          proto exec --tools-from-config -- opam install . --deps-only --with-test --yes
+      - name: Install deps
+        run: opam install . --deps-only --with-test --yes
 
       - name: Run tests
-        run: proto exec --tools-from-config -- dune runtest
+        run: dune runtest
