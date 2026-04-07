@@ -2,11 +2,11 @@
 
 set -euo pipefail
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-SWITCH_NAME=${NATS_ML_OCAML_414_SWITCH:-nats-ml-ocaml-414}
+REPO_ROOT=$(git -C "$(dirname -- "$0")/.." rev-parse --show-toplevel)
+SWITCH_NAME=${NATS_ML_INTEGRATION_SWITCH:-nats-ml-integration}
 
 if ! command -v opam >/dev/null 2>&1; then
-  echo "opam is required to set up the OCaml 4.14 compatibility switch." >&2
+  echo "opam is required to set up the integration test switch." >&2
   exit 1
 fi
 
@@ -15,7 +15,7 @@ if ! opam switch list --short | grep -Fxq "$SWITCH_NAME"; then
 fi
 
 (
-  cd "$ROOT_DIR"
+  cd "$REPO_ROOT"
   opam install --switch="$SWITCH_NAME" --yes \
     core.v0.14.1 \
     async.v0.14.0 \

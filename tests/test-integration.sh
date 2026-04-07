@@ -2,19 +2,19 @@
 
 set -euo pipefail
 
-ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-SWITCH_NAME=${NATS_ML_OCAML_414_SWITCH:-nats-ml-ocaml-414}
+REPO_ROOT=$(git -C "$(dirname -- "$0")/.." rev-parse --show-toplevel)
+SWITCH_NAME=${NATS_ML_INTEGRATION_SWITCH:-nats-ml-integration}
 NATS_IMAGE=${NATS_IMAGE:-nats:2.10-alpine}
 NATS_PORT=${NATS_PORT:-42229}
-CONTAINER_NAME="nats-ml-ocaml-414-${NATS_PORT}-$$"
-INSTALL_PREFIX="$ROOT_DIR/_ocaml-414-install"
+CONTAINER_NAME="nats-ml-integration-${NATS_PORT}-$$"
+INSTALL_PREFIX="$REPO_ROOT/_integration-install"
 
 cleanup() {
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 }
 
 if ! command -v docker >/dev/null 2>&1; then
-  echo "docker is required for the OCaml 4.14 real NATS compatibility test." >&2
+  echo "docker is required for the integration test." >&2
   exit 1
 fi
 
@@ -25,7 +25,7 @@ fi
 
 trap cleanup EXIT
 
-"$ROOT_DIR/scripts/setup-ocaml-414-switch.sh"
+"$REPO_ROOT/tests/setup-integration-switch.sh"
 
 docker run --rm -d --name "$CONTAINER_NAME" -p "127.0.0.1:${NATS_PORT}:4222" \
   "$NATS_IMAGE" >/dev/null
@@ -48,12 +48,12 @@ fi
 export NATS_URL="nats://127.0.0.1:${NATS_PORT}"
 
 opam exec --switch="$SWITCH_NAME" -- dune build @install @runtest
-opam exec --switch="$SWITCH_NAME" -- dune exec ./test/real_nats_integration.exe
+opam exec --switch="$SWITCH_NAME" -- dune exec ./tests/real_nats_integration.exe
 rm -rf "$INSTALL_PREFIX"
 opam exec --switch="$SWITCH_NAME" -- dune install --prefix "$INSTALL_PREFIX"
 
 (
-  cd "$ROOT_DIR/integration/consumer_fixture"
+  cd "$REPO_ROOT/tests/consumer_fixture"
   OCAMLPATH="${INSTALL_PREFIX}/lib${OCAMLPATH+:${OCAMLPATH}}" \
     opam exec --switch="$SWITCH_NAME" -- dune exec ./consumer.exe
 )
