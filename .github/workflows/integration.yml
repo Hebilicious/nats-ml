@@ -1,4 +1,4 @@
-name: CI
+name: Integration
 
 on:
   push:
@@ -19,12 +19,5 @@ jobs:
         with:
           auto-install: true
 
-      - name: Install deps
-        run: opam install . --deps-only --with-test --yes
-
-      - name: Run tests
-        run: dune build @install @runtest
-
-      - name: Run pinned-stack integration tests
-        if: matrix.target == 'ocaml-4.14'
+      - name: Run integration tests
         run: ./tests/test-integration.sh
