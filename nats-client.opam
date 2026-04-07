@@ -4,7 +4,7 @@ synopsis: "Lean OCaml NATS protocol client"
 description: "Runtime-independent OCaml NATS protocol primitives"
 maintainer: ["Hebilicious"]
 authors: ["Hebilicious"]
-license: "Apache-2.0"
+license: "MIT"
 homepage: "https://github.com/hebilicious/nats-ml"
 bug-reports: "https://github.com/hebilicious/nats-ml/issues"
 depends: [

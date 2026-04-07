@@ -11,7 +11,7 @@
 
 (maintainers "Hebilicious")
 
-(license Apache-2.0)
+(license MIT)
 
 (package
  (name nats-client)

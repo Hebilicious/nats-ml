@@ -1,7 +1,7 @@
 name: Release PR
 
 on:
-  pull_request:
+  push:
     branches:
       - main
   workflow_dispatch:
@@ -10,12 +10,14 @@ jobs:
   release-pr:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      pull-requests: read
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup toolchain
         uses: moonrepo/setup-toolchain@v0
@@ -28,5 +30,27 @@ jobs:
       - name: Install release tools
         run: opam install dune-release opam-publish --yes
 
-      - name: Prepare release
-        run: scripts/prepare-release.sh check
+      - name: Prepare release PR content
+        id: prepare
+        run: scripts/prepare-release.sh prepare-pr
+
+      - name: Create or update release PR
+        if: steps.prepare.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "Prepare release v${{ steps.prepare.outputs.next_version }}"
+          branch: "release/v${{ steps.prepare.outputs.next_version }}"
+          title: "release: v${{ steps.prepare.outputs.next_version }}"
+          body: |
+            Automated release PR for `v${{ steps.prepare.outputs.next_version }}`.
+
+            This PR was prepared from `.changes/` fragments and updates `CHANGES.md`.
+
+            After this PR is merged:
+            1. Tag `v${{ steps.prepare.outputs.next_version }}` from `main`.
+            2. Push the tag.
+            3. Let `publish.yml` run `dune-release` and `opam-publish`.
+          delete-branch: true
+          add-paths: |
+            CHANGES.md
+            .changes

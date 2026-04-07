@@ -1,0 +1,3 @@
+(executables
+ (names protocol_demo publish_json request_reply)
+ (libraries core async async_unix yojson uri nats-client nats-client-async))
