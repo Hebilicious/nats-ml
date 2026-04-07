@@ -32,7 +32,7 @@ jobs:
 
       - name: Prepare release PR content
         id: prepare
-        run: scripts/prepare-release.sh prepare-pr
+        run: opam exec -- scripts/prepare-release.sh prepare-pr
 
       - name: Create or update release PR
         if: steps.prepare.outputs.has_changes == 'true'

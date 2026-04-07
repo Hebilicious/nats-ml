@@ -9,7 +9,7 @@ on:
 
 jobs:
   tag-release:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'release: v')
+    if: "${{ github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'release: v') }}"
     runs-on: ubuntu-latest
     permissions:
       contents: write
