@@ -1,0 +1,4 @@
+(executable
+ (name consumer)
+ (libraries core async async_unix uri yojson nats-client nats-client-async)
+ (preprocess (pps ppx_jane)))

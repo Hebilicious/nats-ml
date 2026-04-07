@@ -1,3 +1,7 @@
 (tests
  (names test_protocol test_async_client)
  (libraries alcotest core async async_unix yojson nats-client nats-client-async))
+
+(executable
+ (name real_nats_integration)
+ (libraries core async async_unix yojson nats-client nats-client-async))

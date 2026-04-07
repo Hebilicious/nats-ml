@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  test-latest:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,4 +23,19 @@ jobs:
         run: opam install . --deps-only --with-test --yes
 
       - name: Run tests
-        run: dune runtest
+        run: dune build @install @runtest
+
+  test-ocaml-414:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup toolchain
+        uses: moonrepo/setup-toolchain@v0
+        with:
+          auto-install: true
+
+      - name: Run OCaml 4.14 compatibility checks
+        run: ./scripts/test-ocaml-414.sh

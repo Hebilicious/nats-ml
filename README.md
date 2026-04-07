@@ -34,10 +34,37 @@ dune install
 
 If you are developing against this repository locally, `proto` will provision the OCaml toolchain from [`.prototools`](./.prototools).
 
+## OCaml 4.14 Compatibility Verification
+
+To verify the package against an OCaml `4.14.0` / Async `v0.14` stack, run:
+
+```sh
+./scripts/test-ocaml-414.sh
+```
+
+The script:
+
+- creates or reuses an opam switch pinned to `ocaml-base-compiler.4.14.0`
+  and `dune.3.19.0`
+- installs the relevant dependency family:
+  `core.v0.14.1`, `async.v0.14.0`, `async_unix.v0.14.0`, `uri.4.2.0`,
+  `yojson.1.7.0`, and `ppx_jane.v0.14.0`
+- solves the local package dependencies in that switch, then builds and installs
+  `nats-client` and `nats-client-async` from the checkout into a local prefix
+- starts a real NATS server in Docker
+- runs the unit test suite
+- runs `test/real_nats_integration.ml` against the real NATS server
+- builds and runs the standalone one-file consumer fixture in
+  `integration/consumer_fixture/`
+
+If Docker is unavailable or the NATS container never becomes ready, the script
+fails with a clear error message.
+
 ## Features
 
 - TCP connection over `Async`
-- required NATS handshake `CONNECT {"verbose":false,"pedantic":false}\r\n`
+- required NATS handshake with automatic `protocol=1` / `headers=true`
+  negotiation when the server advertises header support
 - configurable `CONNECT` fields
 - HPUB publish with headers
 - incoming `HMSG` parsing and header delivery

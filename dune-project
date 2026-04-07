@@ -1,4 +1,4 @@
-(lang dune 3.22)
+(lang dune 3.19)
 
 (name nats-client)
 
@@ -18,7 +18,7 @@
  (synopsis "Lean OCaml NATS protocol client")
  (description "Runtime-independent OCaml NATS protocol primitives")
  (depends
-  (ocaml (>= 5.4))
+  (ocaml (>= 4.14.0))
   dune
   yojson
   (alcotest :with-test)))
@@ -28,7 +28,7 @@
  (synopsis "Lean OCaml Async NATS client")
  (description "Async-based OCaml NATS client")
  (depends
-  (ocaml (>= 5.4))
+  (ocaml (>= 4.14.0))
   dune
   core
   async
