@@ -1,9 +1,16 @@
-; Test stanza for unit tests plus the real-NATS integration executable.
+; Package-specific protocol tests that should pass when only nats-client is installed.
 (tests
- (names test_protocol test_async_client)
- (libraries alcotest core async async_unix yojson nats-client nats-client-async))
+ (names test_protocol)
+ (package nats-client)
+ (libraries alcotest nats-client))
+
+; Async-only tests that require the nats-client-async package and its runtime deps.
+(tests
+ (names test_async_client)
+ (package nats-client-async)
+ (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
 
 ; Standalone executable used by CI and local integration runs against Docker NATS.
 (executable
  (name real_nats_integration)
- (libraries core async async_unix yojson nats-client nats-client-async))
+ (libraries core async async_unix uri yojson nats-client nats-client-async))
