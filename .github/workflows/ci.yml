@@ -38,6 +38,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Cache isolated opam root for ${{ matrix.package }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-package-check-root
+          key: ${{ runner.os }}-opam-package-isolation-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'tests/dune', 'tests/check-opam-package-isolation.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-opam-package-isolation-${{ matrix.package }}-
+
       - name: Setup toolchain
         uses: moonrepo/setup-toolchain@v0
         with:
