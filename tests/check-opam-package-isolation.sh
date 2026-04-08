@@ -31,6 +31,8 @@ if [[ ! -f "$OPAM_ROOT/config" ]]; then
   opam init --root="$OPAM_ROOT" --bare --disable-sandboxing --no-setup --yes default https://opam.ocaml.org
 fi
 
+opam update --root="$OPAM_ROOT" --yes default
+
 if opam switch list --root="$OPAM_ROOT" --short | grep -Fxq "$SWITCH_NAME"; then
   opam switch remove --root="$OPAM_ROOT" --yes "$SWITCH_NAME"
 fi
