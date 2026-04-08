@@ -2,8 +2,6 @@
 
 [![CI](https://github.com/Hebilicious/nats-ml/actions/workflows/ci.yml/badge.svg)](https://github.com/Hebilicious/nats-ml/actions/workflows/ci.yml)
 [![Integration](https://github.com/Hebilicious/nats-ml/actions/workflows/integration.yml/badge.svg)](https://github.com/Hebilicious/nats-ml/actions/workflows/integration.yml)
-[![opam package nats-client](https://img.shields.io/opam/v/nats-client)](https://opam.ocaml.org/packages/nats-client/)
-[![opam package nats-client-async](https://img.shields.io/opam/v/nats-client-async)](https://opam.ocaml.org/packages/nats-client-async/)
 
 Lean OCaml NATS clients built around a small protocol core and an `Async` runtime.
 
