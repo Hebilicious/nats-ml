@@ -27,15 +27,15 @@ if ! command -v opam >/dev/null 2>&1; then
 fi
 
 opam_in_root() {
-  opam --root="$OPAM_ROOT" --yes "$@"
+  OPAMROOT="$OPAM_ROOT" opam --yes "$@"
 }
 
 if [[ ! -f "$OPAM_ROOT/config" ]]; then
   rm -rf "$OPAM_ROOT"
-  opam init --root="$OPAM_ROOT" --bare --disable-sandboxing --no-setup --yes default https://opam.ocaml.org
+  opam_in_root init --bare --disable-sandboxing --no-setup default https://opam.ocaml.org
 fi
 
-if opam switch list --root="$OPAM_ROOT" --short | grep -Fxq "$SWITCH_NAME"; then
+if opam_in_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
   opam_in_root switch remove "$SWITCH_NAME"
 fi
 
