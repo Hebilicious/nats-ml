@@ -26,20 +26,16 @@ if ! command -v opam >/dev/null 2>&1; then
   exit 1
 fi
 
-opam_in_root() {
-  OPAMROOT="$OPAM_ROOT" opam --yes "$@"
-}
-
 if [[ ! -f "$OPAM_ROOT/config" ]]; then
   rm -rf "$OPAM_ROOT"
-  opam_in_root init --bare --disable-sandboxing --no-setup default https://opam.ocaml.org
+  opam init --root="$OPAM_ROOT" --bare --disable-sandboxing --no-setup --yes default https://opam.ocaml.org
 fi
 
-if opam_in_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
-  opam_in_root switch remove "$SWITCH_NAME"
+if opam switch list --root="$OPAM_ROOT" --short | grep -Fxq "$SWITCH_NAME"; then
+  opam switch remove --root="$OPAM_ROOT" --yes "$SWITCH_NAME"
 fi
 
-opam_in_root switch create "$SWITCH_NAME" "$OCAML_COMPILER" "$DUNE_PACKAGE"
-opam_in_root pin add -n --switch="$SWITCH_NAME" nats-client "$REPO_ROOT"
-opam_in_root pin add -n --switch="$SWITCH_NAME" nats-client-async "$REPO_ROOT"
-opam_in_root install --switch="$SWITCH_NAME" "$PACKAGE" --with-test
+opam switch create --root="$OPAM_ROOT" --yes "$SWITCH_NAME" "$OCAML_COMPILER" "$DUNE_PACKAGE"
+opam pin add --root="$OPAM_ROOT" --switch="$SWITCH_NAME" --yes --no-action nats-client "$REPO_ROOT"
+opam pin add --root="$OPAM_ROOT" --switch="$SWITCH_NAME" --yes --no-action nats-client-async "$REPO_ROOT"
+opam install --root="$OPAM_ROOT" --switch="$SWITCH_NAME" --yes "$PACKAGE" --with-test
