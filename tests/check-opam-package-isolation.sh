@@ -12,6 +12,11 @@ SWITCH_NAME=${PACKAGE}-package-check
 OCAML_COMPILER=ocaml-base-compiler.4.14.3
 DUNE_PACKAGE=dune.3.19.0
 
+# setup-toolchain exports OPAMROOT/OPAMSWITCH for the repo toolchain; clear them
+# so the explicit --root/--switch flags below control the isolated check root.
+unset OPAMROOT
+unset OPAMSWITCH
+
 case "$PACKAGE" in
   nats-client|nats-client-async)
     ;;
