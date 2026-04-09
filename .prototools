@@ -1,5 +1,5 @@
 [plugins.tools]
-ocaml = "github://Hebilicious/proto-ocaml@v0.1.2"
+ocaml = "https://github.com/Hebilicious/proto-ocaml/releases/download/v0.1.2/ocaml_plugin.wasm"
 
 [tools.ocaml]
 version = "5.4.1"
