@@ -69,7 +69,11 @@ opam_root() {
 
 if [[ ! -f "$OPAM_ROOT/config" ]]; then
   rm -rf "$OPAM_ROOT"
-  opam_root init --bare "${INIT_ARGS[@]}" --no-setup --yes default https://opam.ocaml.org
+  opam_init_args=(--bare --no-setup --yes default https://opam.ocaml.org)
+  if ((${#INIT_ARGS[@]} > 0)); then
+    opam_init_args+=("${INIT_ARGS[@]}")
+  fi
+  opam_root init "${opam_init_args[@]}"
 fi
 
 if opam_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
