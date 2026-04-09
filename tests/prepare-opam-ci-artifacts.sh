@@ -88,3 +88,4 @@ upstream: "file://$REPO_ROOT"
 EOF
 
 printf '%s\n' "$PACKAGE_VERSION" >"$OUT_DIR/version"
+chmod -R a+rX "$OUT_DIR"
