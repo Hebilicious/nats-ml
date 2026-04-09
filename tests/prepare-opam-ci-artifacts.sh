@@ -57,8 +57,9 @@ ARCHIVE_PATH="$ARCHIVE_DIR/$ARCHIVE_BASENAME.tar.gz"
 LOCAL_REPO_ROOT="$OUT_DIR/repo"
 
 mkdir -p "$ARCHIVE_DIR"
-mkdir -p "$LOCAL_REPO_ROOT/packages/nats-client/nats-client.$PACKAGE_VERSION"
-mkdir -p "$LOCAL_REPO_ROOT/packages/nats-client-async/nats-client-async.$PACKAGE_VERSION"
+for package in nats-client nats-client-async; do
+  mkdir -p "$LOCAL_REPO_ROOT/packages/$package/$package.$PACKAGE_VERSION"
+done
 
 git -C "$REPO_ROOT" archive \
   --format=tar.gz \
@@ -70,17 +71,13 @@ ARCHIVE_SHA=$(sha256_file "$ARCHIVE_PATH")
 ARCHIVE_DIR_URL=${NATS_ML_OPAM_CI_ARCHIVE_DIR_URL:-file://$ARCHIVE_DIR}
 ARCHIVE_URL="$ARCHIVE_DIR_URL/$ARCHIVE_BASENAME.tar.gz"
 
-append_url_block \
-  "$REPO_ROOT/nats-client.opam" \
-  "$LOCAL_REPO_ROOT/packages/nats-client/nats-client.$PACKAGE_VERSION/opam" \
-  "$ARCHIVE_URL" \
-  "$ARCHIVE_SHA"
-
-append_url_block \
-  "$REPO_ROOT/nats-client-async.opam" \
-  "$LOCAL_REPO_ROOT/packages/nats-client-async/nats-client-async.$PACKAGE_VERSION/opam" \
-  "$ARCHIVE_URL" \
-  "$ARCHIVE_SHA"
+for package in nats-client nats-client-async; do
+  append_url_block \
+    "$REPO_ROOT/$package.opam" \
+    "$LOCAL_REPO_ROOT/packages/$package/$package.$PACKAGE_VERSION/opam" \
+    "$ARCHIVE_URL" \
+    "$ARCHIVE_SHA"
+done
 
 cat >"$LOCAL_REPO_ROOT/repo" <<EOF
 opam-version: "2.0"

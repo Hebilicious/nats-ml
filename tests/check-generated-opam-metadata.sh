@@ -25,8 +25,9 @@ assert_contains() {
   grep -F "$needle" "$file" >/dev/null
 }
 
-assert_contains '"alcotest" {with-test}' nats-client.opam
-assert_contains '"alcotest" {with-test}' nats-client-async.opam
-assert_contains '"@runtest" {with-test}' nats-client.opam
-assert_contains '"@runtest" {with-test}' nats-client-async.opam
+for opam_file in nats-client.opam nats-client-async.opam; do
+  assert_contains '"alcotest" {with-test}' "$opam_file"
+  assert_contains '"@runtest" {with-test}' "$opam_file"
+done
+
 assert_contains '"yojson" {>= "2.0.0"}' nats-client-async.opam
