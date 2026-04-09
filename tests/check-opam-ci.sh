@@ -6,6 +6,7 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_ROOT=$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)
 MODE=${1:-}
 PACKAGE=${2:-}
+ARTIFACT_ROOT=
 
 usage() {
   echo "usage: $0 <build|lower-bounds|with-test> <nats-client|nats-client-async>" >&2
@@ -60,6 +61,15 @@ esac
 
 OPAM_ROOT=${NATS_ML_OPAM_CI_ROOT:-$REPO_ROOT/.opam-ci-root/$MODE-$PACKAGE}
 SWITCH_NAME=${PACKAGE}-${MODE}
+LOCAL_REPO_NAME=nats-ml-local
+
+cleanup() {
+  if [[ -n "$ARTIFACT_ROOT" && -d "$ARTIFACT_ROOT" ]]; then
+    rm -rf "$ARTIFACT_ROOT"
+  fi
+}
+
+trap cleanup EXIT
 
 opam_root() {
   local cmd=$1
@@ -80,11 +90,15 @@ if opam_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
   opam_root switch remove --yes "$SWITCH_NAME"
 fi
 
-opam_root switch create --yes "$SWITCH_NAME" "$OCAML_COMPILER" "$DUNE_PACKAGE"
-opam_root pin add --switch="$SWITCH_NAME" --yes --no-action -k path nats-client "$REPO_ROOT"
-opam_root pin add --switch="$SWITCH_NAME" --yes --no-action -k path nats-client-async "$REPO_ROOT"
+ARTIFACT_ROOT=$(mktemp -d "$REPO_ROOT/.opam-ci-artifacts.XXXXXX")
+"$SCRIPT_DIR/prepare-opam-ci-artifacts.sh" "$ARTIFACT_ROOT"
+PACKAGE_VERSION=$(<"$ARTIFACT_ROOT/version")
 
-opam_root install --switch="$SWITCH_NAME" --yes "$PACKAGE"
+opam_root switch create --yes "$SWITCH_NAME" "$OCAML_COMPILER" "$DUNE_PACKAGE"
+opam_root repository remove --switch="$SWITCH_NAME" --yes "$LOCAL_REPO_NAME" >/dev/null 2>&1 || true
+opam_root repository add --switch="$SWITCH_NAME" --yes "$LOCAL_REPO_NAME" "file://$ARTIFACT_ROOT/repo"
+
+opam_root install --switch="$SWITCH_NAME" --yes "$PACKAGE.$PACKAGE_VERSION"
 
 case "$MODE" in
   build)
@@ -93,9 +107,9 @@ case "$MODE" in
     OPAMCRITERIA="+removed,+count[version-lag,solution]" \
     OPAMFIXUPCRITERIA="+removed,+count[version-lag,solution]" \
     OPAMUPGRADECRITERIA="+removed,+count[version-lag,solution]" \
-      opam_root reinstall --switch="$SWITCH_NAME" --yes "$PACKAGE"
+      opam_root reinstall --switch="$SWITCH_NAME" --yes "$PACKAGE.$PACKAGE_VERSION"
     ;;
   with-test)
-    opam_root reinstall --switch="$SWITCH_NAME" --yes --with-test "$PACKAGE"
+    opam_root reinstall --switch="$SWITCH_NAME" --yes --with-test "$PACKAGE.$PACKAGE_VERSION"
     ;;
 esac

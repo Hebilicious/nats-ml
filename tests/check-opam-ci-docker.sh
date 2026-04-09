@@ -7,6 +7,7 @@ REPO_ROOT=$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)
 IMAGE=${1:-}
 MODE=${2:-}
 PACKAGE=${3:-}
+ARTIFACT_ROOT=
 
 usage() {
   echo "usage: $0 <docker-image> <build|lower-bounds|with-test> <nats-client|nats-client-async>" >&2
@@ -33,6 +34,20 @@ if [[ -z "$IMAGE" ]]; then
   usage
 fi
 
+cleanup() {
+  if [[ -n "$ARTIFACT_ROOT" && -d "$ARTIFACT_ROOT" ]]; then
+    rm -rf "$ARTIFACT_ROOT"
+  fi
+}
+
+trap cleanup EXIT
+
+ARTIFACT_ROOT=$(mktemp -d "$REPO_ROOT/.opam-ci-artifacts.XXXXXX")
+ARTIFACT_BASENAME=$(basename "$ARTIFACT_ROOT")
+NATS_ML_OPAM_CI_ARCHIVE_DIR_URL="file:///workspace/$ARTIFACT_BASENAME/dist" \
+  "$SCRIPT_DIR/prepare-opam-ci-artifacts.sh" "$ARTIFACT_ROOT"
+PACKAGE_VERSION=$(<"$ARTIFACT_ROOT/version")
+
 docker run --rm \
   -v "$REPO_ROOT:/workspace" \
   -w /workspace \
@@ -47,9 +62,8 @@ docker run --rm \
     export OPAMDOWNLOADJOBS=1
     export OPAMERRLOGLEN=0
     export OPAMPRECISETRACKING=1
-    opam pin add -k path -yn nats-client /workspace
-    opam pin add -k path -yn nats-client-async /workspace
-    opam install -y $PACKAGE
+    opam repository add -y nats-ml-local file:///workspace/$ARTIFACT_BASENAME/repo
+    opam install -y $PACKAGE.$PACKAGE_VERSION
     case $MODE in
       build)
         ;;
@@ -57,10 +71,10 @@ docker run --rm \
         OPAMCRITERIA='+removed,+count[version-lag,solution]' \
         OPAMFIXUPCRITERIA='+removed,+count[version-lag,solution]' \
         OPAMUPGRADECRITERIA='+removed,+count[version-lag,solution]' \
-          opam reinstall -y $PACKAGE
+          opam reinstall -y $PACKAGE.$PACKAGE_VERSION
         ;;
       with-test)
-        opam reinstall -y --with-test $PACKAGE
+        opam reinstall -y --with-test $PACKAGE.$PACKAGE_VERSION
         ;;
     esac
   "
