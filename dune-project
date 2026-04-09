@@ -34,6 +34,6 @@
   async
   async_unix
   uri
-  yojson
+  (yojson (>= 2.0.0))
   nats-client
   (alcotest :with-test)))

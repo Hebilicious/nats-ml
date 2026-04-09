@@ -14,6 +14,8 @@ depends: [
   "alcotest" {with-test}
   "odoc" {with-doc}
 ]
+dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
+x-maintenance-intent: ["(latest)"]
 build: [
   ["dune" "subst"] {dev}
   [
@@ -28,5 +30,3 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
-x-maintenance-intent: ["(latest)"]
