@@ -47,8 +47,8 @@ docker run --rm \
     export OPAMDOWNLOADJOBS=1
     export OPAMERRLOGLEN=0
     export OPAMPRECISETRACKING=1
-    opam pin add -yn nats-client /workspace
-    opam pin add -yn nats-client-async /workspace
+    opam pin add -k path -yn nats-client /workspace
+    opam pin add -k path -yn nats-client-async /workspace
     opam install -y $PACKAGE
     case $MODE in
       build)

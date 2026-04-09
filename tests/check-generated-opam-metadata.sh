@@ -18,8 +18,15 @@ dune build nats-client.opam nats-client-async.opam
 cmp -s "$before_nats_client" nats-client.opam
 cmp -s "$before_nats_client_async" nats-client-async.opam
 
-rg -F '"alcotest" {with-test}' nats-client.opam >/dev/null
-rg -F '"alcotest" {with-test}' nats-client-async.opam >/dev/null
-rg -F '"@runtest" {with-test}' nats-client.opam >/dev/null
-rg -F '"@runtest" {with-test}' nats-client-async.opam >/dev/null
-rg -F '"yojson" {>= "2.0.0"}' nats-client-async.opam >/dev/null
+assert_contains() {
+  local needle=$1
+  local file=$2
+
+  grep -F "$needle" "$file" >/dev/null
+}
+
+assert_contains '"alcotest" {with-test}' nats-client.opam
+assert_contains '"alcotest" {with-test}' nats-client-async.opam
+assert_contains '"@runtest" {with-test}' nats-client.opam
+assert_contains '"@runtest" {with-test}' nats-client-async.opam
+assert_contains '"yojson" {>= "2.0.0"}' nats-client-async.opam

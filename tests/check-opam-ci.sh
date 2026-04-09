@@ -77,8 +77,8 @@ if opam_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
 fi
 
 opam_root switch create --yes "$SWITCH_NAME" "$OCAML_COMPILER" "$DUNE_PACKAGE"
-opam_root pin add --switch="$SWITCH_NAME" --yes --no-action nats-client "$REPO_ROOT"
-opam_root pin add --switch="$SWITCH_NAME" --yes --no-action nats-client-async "$REPO_ROOT"
+opam_root pin add --switch="$SWITCH_NAME" --yes --no-action -k path nats-client "$REPO_ROOT"
+opam_root pin add --switch="$SWITCH_NAME" --yes --no-action -k path nats-client-async "$REPO_ROOT"
 
 opam_root install --switch="$SWITCH_NAME" --yes "$PACKAGE"
 
