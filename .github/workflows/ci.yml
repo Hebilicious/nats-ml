@@ -124,7 +124,7 @@ jobs:
         run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" with-test "${{ matrix.package }}"
 
   opam-with-test-regression:
-    runs-on: macos-13
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
