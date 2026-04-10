@@ -1,3 +1,5 @@
+available: [ os-distribution != "alpine" ]
+
 build: [
   ["dune" "subst"] {dev}
   [
@@ -8,7 +10,7 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test}
+    "@runtest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}
     "@doc" {with-doc}
   ]
 ]

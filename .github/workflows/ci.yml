@@ -74,12 +74,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - ocaml/opam:debian-13-ocaml-4.14
-          - ocaml/opam:debian-13-ocaml-5.4
-        package:
-          - nats-client
-          - nats-client-async
+        include:
+          - image: ocaml/opam:debian-13-ocaml-4.14
+            package: nats-client
+          - image: ocaml/opam:debian-13-ocaml-4.14
+            package: nats-client-async
+          - image: ocaml/opam:debian-13-ocaml-5.4
+            package: nats-client
+          - image: ocaml/opam:debian-13-ocaml-5.4
+            package: nats-client-async
+          - image: ocaml/opam:opensuse-15.6-ocaml-5.4
+            package: nats-client-async
 
     steps:
       - name: Checkout
@@ -87,6 +92,22 @@ jobs:
 
       - name: Verify Linux opam build for ${{ matrix.package }}
         run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" build "${{ matrix.package }}"
+
+  opam-linux-unavailable:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - ocaml/opam:alpine-3.22-ocaml-4.14
+          - ocaml/opam:alpine-3.22-ocaml-5.4
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Verify Alpine marks nats-client-async unavailable
+        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" expect-unavailable nats-client-async
 
   opam-linux-lower-bounds:
     runs-on: ubuntu-latest
@@ -121,6 +142,79 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Verify Linux opam --with-test install for ${{ matrix.package }}
+        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" with-test "${{ matrix.package }}"
+
+  opam-linux-with-test-opam20:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - ocaml/opam:debian-13-ocaml-4.14
+          - ocaml/opam:debian-13-ocaml-5.4
+        package:
+          - nats-client
+          - nats-client-async
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Verify opam 2.0 --with-test install for ${{ matrix.package }}
+        env:
+          NATS_ML_OPAM_CI_OPAM_VERSION: 2.0.10
+        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" with-test-opam20 "${{ matrix.package }}"
+
+  opam-extra-arch-with-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: x86_32-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/386
+            package: nats-client-async
+          - label: arm32-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/arm/v7
+            package: nats-client-async
+          - label: s390x-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/s390x
+            package: nats-client-async
+          - label: ppc64le-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/ppc64le
+            package: nats-client-async
+          - label: riscv64-ocaml-4.14-nats-client
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/riscv64
+            package: nats-client
+          - label: riscv64-ocaml-4.14-nats-client-async
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/riscv64
+            package: nats-client-async
+          - label: riscv64-ocaml-5.4-nats-client
+            image: ocaml/opam:debian-13-ocaml-5.4
+            platform: linux/riscv64
+            package: nats-client
+          - label: riscv64-ocaml-5.4-nats-client-async
+            image: ocaml/opam:debian-13-ocaml-5.4
+            platform: linux/riscv64
+            package: nats-client-async
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Verify cross-arch opam --with-test install for ${{ matrix.package }}
+        env:
+          NATS_ML_OPAM_CI_DOCKER_PLATFORM: ${{ matrix.platform }}
         run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" with-test "${{ matrix.package }}"
 
   opam-with-test-regression:

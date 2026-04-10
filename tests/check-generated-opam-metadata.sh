@@ -25,9 +25,9 @@ assert_contains() {
   grep -F "$needle" "$file" >/dev/null
 }
 
-for opam_file in nats-client.opam nats-client-async.opam; do
-  assert_contains '"alcotest" {with-test}' "$opam_file"
-  assert_contains '"@runtest" {with-test}' "$opam_file"
-done
-
+assert_contains '"alcotest" {with-test & opam-version >= "2.1"}' nats-client.opam
+assert_contains '"@runtest" {with-test & opam-version >= "2.1"}' nats-client.opam
+assert_contains 'available: [ os-distribution != "alpine" ]' nats-client-async.opam
+assert_contains '"alcotest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
+assert_contains '"@runtest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
 assert_contains '"yojson" {>= "2.0.0"}' nats-client-async.opam
