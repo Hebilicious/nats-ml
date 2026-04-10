@@ -62,7 +62,9 @@ opam_ci_prepare_artifacts() {
   local repo_root=$1
   local script_dir=$2
 
-  ARTIFACT_ROOT=$(mktemp -d "$repo_root/.opam-ci-artifacts.XXXXXX")
+  if [[ -z "${ARTIFACT_ROOT:-}" ]]; then
+    ARTIFACT_ROOT=$(mktemp -d "$repo_root/.opam-ci-artifacts.XXXXXX")
+  fi
   "$script_dir/prepare-opam-ci-artifacts.sh" "$ARTIFACT_ROOT"
   PACKAGE_VERSION=$(<"$ARTIFACT_ROOT/version")
 }
