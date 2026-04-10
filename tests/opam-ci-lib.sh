@@ -66,6 +66,9 @@ opam_ci_opam() {
 }
 
 opam_ci_configure_solver() {
+  if [[ -n "${NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER:-}" ]]; then
+    return 0
+  fi
   opam_ci_opam option solver=builtin-0install || true
 }
 
@@ -75,7 +78,11 @@ opam_ci_export_env() {
   export OPAMDOWNLOADJOBS=1
   export OPAMERRLOGLEN=0
   export OPAMPRECISETRACKING=1
-  export OPAMEXTERNALSOLVER=builtin-0install
+  if [[ -z "${NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER:-}" ]]; then
+    export OPAMEXTERNALSOLVER=builtin-0install
+  else
+    unset OPAMEXTERNALSOLVER || true
+  fi
 }
 
 opam_ci_set_mode_defaults() {
@@ -100,6 +107,7 @@ opam_ci_set_mode_defaults() {
       DUNE_PACKAGE=${NATS_ML_OPAM_CI_DUNE:-dune.3.22.1}
       INIT_ARGS=()
       NATS_ML_OPAM_CI_OPAM_VERSION=${NATS_ML_OPAM_CI_OPAM_VERSION:-2.0.10}
+      NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER=1
       ;;
     expect-unavailable)
       OCAML_COMPILER=${NATS_ML_OPAM_CI_COMPILER:-ocaml-base-compiler.5.4.0}

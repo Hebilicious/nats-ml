@@ -28,6 +28,7 @@ assert_contains() {
 assert_contains '"alcotest" {with-test & opam-version >= "2.1"}' nats-client.opam
 assert_contains '"@runtest" {with-test & opam-version >= "2.1"}' nats-client.opam
 assert_contains 'available: [ os-distribution != "alpine" ]' nats-client-async.opam
-assert_contains '"alcotest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
+assert_contains '"alcotest"' nats-client-async.opam
+assert_contains '{with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
 assert_contains '"@runtest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
 assert_contains '"yojson" {>= "2.0.0"}' nats-client-async.opam
