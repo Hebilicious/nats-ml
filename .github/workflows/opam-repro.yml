@@ -69,7 +69,7 @@ jobs:
 
   opam-extra-arch-repro:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
