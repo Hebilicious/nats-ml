@@ -1,4 +1,4 @@
-available: [ os-distribution != "alpine" ]
+available: [ os-distribution != "alpine" & arch != "riscv64" ]
 
 build: [
   ["dune" "subst"] {dev}
