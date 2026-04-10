@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.3 - 2026-04-10
+
+
+- Publish only hermetic package tests and keep the TCP-listener async coverage in repo-only integration tests.
+- Mirror the failing opam-repository lower-bounds and package install checks in CI before the next release is cut.
+- Require `yojson >= 2.0.0` for `nats-client-async`.
+
+
 ## 0.0.2 - 2026-04-09
 
 
