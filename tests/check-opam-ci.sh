@@ -44,9 +44,11 @@ fi
 opam_ci_prepare_artifacts "$REPO_ROOT" "$SCRIPT_DIR"
 
 opam_root switch create --yes "$SWITCH_NAME" "$OCAML_COMPILER" "$DUNE_PACKAGE"
-opam_root repository remove --yes "$LOCAL_REPO_NAME" >/dev/null 2>&1 || true
-opam_root repository remove --switch="$SWITCH_NAME" --yes "$LOCAL_REPO_NAME" >/dev/null 2>&1 || true
-opam_root repository add --switch="$SWITCH_NAME" --yes "$LOCAL_REPO_NAME" "file://$ARTIFACT_ROOT/repo"
+if opam_root repository list --switch="$SWITCH_NAME" --short | awk '{print $1}' | grep -Fxq "$LOCAL_REPO_NAME"; then
+  opam_root repository set-url --switch="$SWITCH_NAME" "$LOCAL_REPO_NAME" "file://$ARTIFACT_ROOT/repo"
+else
+  opam_root repository add --switch="$SWITCH_NAME" --yes "$LOCAL_REPO_NAME" "file://$ARTIFACT_ROOT/repo"
+fi
 
 opam_root install --switch="$SWITCH_NAME" --yes "$PACKAGE.$PACKAGE_VERSION"
 opam_ci_run_mode "$MODE" "$PACKAGE.$PACKAGE_VERSION" opam_root reinstall --switch="$SWITCH_NAME" --yes
