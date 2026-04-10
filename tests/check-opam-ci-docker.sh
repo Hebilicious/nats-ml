@@ -46,7 +46,7 @@ docker "${docker_args[@]}" \
     rm -rf \"\$OPAMROOT\"
     opam_ci_init_root
     opam_ci_configure_solver
-    opam_ci_opam switch create -y nats-opam-ci $OCAML_COMPILER $DUNE_PACKAGE
+    opam_ci_create_switch nats-opam-ci
     opam_ci_opam repository add --switch=nats-opam-ci -y nats-ml-local file:///workspace/$ARTIFACT_BASENAME/repo
     if [[ '$MODE' == 'expect-unavailable' ]]; then
       if opam_ci_opam install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION; then

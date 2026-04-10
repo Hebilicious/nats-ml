@@ -95,6 +95,13 @@ opam_ci_init_root() {
   opam_ci_opam init "${init_args[@]}"
 }
 
+opam_ci_create_switch() {
+  local switch_name=$1
+
+  opam_ci_opam switch create -y "$switch_name" "$OCAML_COMPILER"
+  opam_ci_opam install --switch="$switch_name" -y "$DUNE_PACKAGE"
+}
+
 opam_ci_set_mode_defaults() {
   case "$1" in
     build)
