@@ -14,11 +14,13 @@ depends: [
   "async"
   "async_unix"
   "uri"
-  "yojson"
+  "yojson" {>= "2.0.0"}
   "nats-client"
   "alcotest" {with-test}
   "odoc" {with-doc}
 ]
+dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
+x-maintenance-intent: ["(latest)"]
 build: [
   ["dune" "subst"] {dev}
   [
@@ -33,5 +35,3 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
-x-maintenance-intent: ["(latest)"]
