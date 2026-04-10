@@ -85,6 +85,16 @@ opam_ci_export_env() {
   fi
 }
 
+opam_ci_init_root() {
+  local init_args=(--bare --no-setup -y default https://opam.ocaml.org)
+
+  if ((${#INIT_ARGS[@]} > 0)); then
+    init_args+=("${INIT_ARGS[@]}")
+  fi
+
+  opam_ci_opam init "${init_args[@]}"
+}
+
 opam_ci_set_mode_defaults() {
   case "$1" in
     build)

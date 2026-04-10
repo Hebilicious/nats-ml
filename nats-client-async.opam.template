@@ -1,4 +1,4 @@
-available: [ os-distribution != "alpine" & !(arch = "riscv64" & ocaml-version >= "5.4") ]
+available: [ os-distribution != "alpine" ]
 
 build: [
   ["dune" "subst"] {dev}
