@@ -44,8 +44,9 @@ fi
 opam_ci_prepare_artifacts "$REPO_ROOT" "$SCRIPT_DIR"
 
 opam_root switch create --yes "$SWITCH_NAME" "$OCAML_COMPILER" "$DUNE_PACKAGE"
-if opam_root repository list --switch="$SWITCH_NAME" --short | awk '{print $1}' | grep -Fxq "$LOCAL_REPO_NAME"; then
-  opam_root repository set-url --switch="$SWITCH_NAME" "$LOCAL_REPO_NAME" "file://$ARTIFACT_ROOT/repo"
+if opam_root repository list --all --short | grep -Fxq "$LOCAL_REPO_NAME"; then
+  opam_root repository set-url "$LOCAL_REPO_NAME" "file://$ARTIFACT_ROOT/repo"
+  opam_root repository add --switch="$SWITCH_NAME" --yes "$LOCAL_REPO_NAME"
 else
   opam_root repository add --switch="$SWITCH_NAME" --yes "$LOCAL_REPO_NAME" "file://$ARTIFACT_ROOT/repo"
 fi
