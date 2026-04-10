@@ -33,9 +33,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Cache opam root for ${{ matrix.label }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+          key: ${{ runner.os }}-opam-distro-${{ matrix.label }}-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci-docker.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
+
       - name: Reproduce ${{ matrix.label }} for ${{ matrix.package }}
         env:
           NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
+          NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
         run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" "${{ matrix.mode }}" "${{ matrix.package }}"
 
   opam-opam20-repro:
@@ -61,10 +68,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Cache opam root for ${{ matrix.label }} / ${{ matrix.package }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+          key: ${{ runner.os }}-opam20-${{ matrix.label }}-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci-docker.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
+
       - name: Reproduce ${{ matrix.label }} tests for ${{ matrix.package }}
         env:
           NATS_ML_OPAM_CI_OPAM_VERSION: 2.0.10
           NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
+          NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
         run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" with-test-opam20 "${{ matrix.package }}"
 
   opam-extra-arch-repro:
@@ -108,10 +122,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Cache opam root for ${{ matrix.label }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+          key: ${{ runner.os }}-opam-extra-arch-${{ matrix.label }}-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci-docker.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
+
       - name: Reproduce ${{ matrix.label }} for ${{ matrix.package }}
         env:
           NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
           NATS_ML_OPAM_CI_DOCKER_PLATFORM: ${{ matrix.platform }}
+          NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
         run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" "${{ matrix.mode || 'with-test' }}" "${{ matrix.package }}"
 
   opam-macos-repro:
@@ -131,7 +152,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .opam-with-test-root
-          key: ${{ runner.os }}-opam-with-test-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci.sh') }}
+          key: ${{ runner.os }}-opam-with-test-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
           restore-keys: |
             ${{ runner.os }}-opam-with-test-${{ matrix.package }}-
 

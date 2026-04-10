@@ -34,6 +34,7 @@ docker "${docker_args[@]}" \
   -e NATS_ML_OPAM_CI_OPAM_VERSION="${NATS_ML_OPAM_CI_OPAM_VERSION:-}" \
   -e NATS_ML_OPAM_CI_COMPILER="${NATS_ML_OPAM_CI_COMPILER:-}" \
   -e NATS_ML_OPAM_CI_DUNE="${NATS_ML_OPAM_CI_DUNE:-}" \
+  -e NATS_ML_OPAM_CI_ROOT="${NATS_ML_OPAM_CI_ROOT:-}" \
   "$IMAGE" \
   bash -lc "
     set -euo pipefail
@@ -42,19 +43,39 @@ docker "${docker_args[@]}" \
     opam_ci_resolve_opam_bin
     opam_ci_require_opam
     opam_ci_export_env
-    export OPAMROOT=/tmp/nats-ml-opam-root
-    rm -rf \"\$OPAMROOT\"
-    opam_ci_init_root
+    LOCAL_REPO_NAME=nats-ml-local
+    if [[ -n \"\${NATS_ML_OPAM_CI_ROOT:-}\" ]]; then
+      export OPAMROOT=/workspace/\$NATS_ML_OPAM_CI_ROOT
+    else
+      export OPAMROOT=/tmp/nats-ml-opam-root
+    fi
+    mkdir -p \"\$OPAMROOT\"
+    opam_root() {
+      local cmd=\$1
+      shift
+      opam_ci_opam \"\$cmd\" --root=\"\$OPAMROOT\" \"\$@\"
+    }
+    if [[ ! -f \"\$OPAMROOT/config\" ]]; then
+      opam_ci_init_root
+    fi
     opam_ci_configure_solver
-    opam_ci_create_switch nats-opam-ci
-    opam_ci_opam repository add --switch=nats-opam-ci -y nats-ml-local file:///workspace/$ARTIFACT_BASENAME/repo
+    if ! opam_root switch list --short | grep -Fxq nats-opam-ci; then
+      opam_root switch create -y nats-opam-ci \$OCAML_COMPILER
+    fi
+    opam_root install --switch=nats-opam-ci -y \$DUNE_PACKAGE
+    if opam_root repository list --all --short | grep -Fxq \"\$LOCAL_REPO_NAME\"; then
+      opam_root repository set-url \"\$LOCAL_REPO_NAME\" file:///workspace/$ARTIFACT_BASENAME/repo
+      opam_root repository add --switch=nats-opam-ci -y \"\$LOCAL_REPO_NAME\"
+    else
+      opam_root repository add --switch=nats-opam-ci -y \"\$LOCAL_REPO_NAME\" file:///workspace/$ARTIFACT_BASENAME/repo
+    fi
     if [[ '$MODE' == 'expect-unavailable' ]]; then
-      if opam_ci_opam install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION; then
+      if opam_root install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION; then
         echo 'expected $PACKAGE to be unavailable in this environment' >&2
         exit 1
       fi
     else
-      opam_ci_opam install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION
-      opam_ci_run_mode $MODE $PACKAGE.$PACKAGE_VERSION opam_ci_opam reinstall --switch=nats-opam-ci -y
+      opam_root install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION
+      opam_ci_run_mode $MODE $PACKAGE.$PACKAGE_VERSION opam_root reinstall --switch=nats-opam-ci -y
     fi
   "
