@@ -11,6 +11,7 @@ MODE=${2:-}
 PACKAGE=${3:-}
 ARTIFACT_ROOT=
 DOCKER_PLATFORM=${NATS_ML_OPAM_CI_DOCKER_PLATFORM:-}
+CACHED_OPAM_ROOT_HOST=
 
 [[ -n "$IMAGE" ]] || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
 opam_ci_validate_mode "$MODE" || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
@@ -27,6 +28,12 @@ docker_args=(run --rm)
 if [[ -n "$DOCKER_PLATFORM" ]]; then
   docker_args+=(--platform "$DOCKER_PLATFORM")
 fi
+if [[ -n "${NATS_ML_OPAM_CI_ROOT:-}" ]]; then
+  CACHED_OPAM_ROOT_HOST="$REPO_ROOT/$NATS_ML_OPAM_CI_ROOT"
+  mkdir -p "$CACHED_OPAM_ROOT_HOST"
+  chmod 0777 "$CACHED_OPAM_ROOT_HOST"
+  docker_args+=(-v "$CACHED_OPAM_ROOT_HOST:/nats-ml-opam-root")
+fi
 
 docker "${docker_args[@]}" \
   -v "$REPO_ROOT:/workspace" \
@@ -34,7 +41,7 @@ docker "${docker_args[@]}" \
   -e NATS_ML_OPAM_CI_OPAM_VERSION="${NATS_ML_OPAM_CI_OPAM_VERSION:-}" \
   -e NATS_ML_OPAM_CI_COMPILER="${NATS_ML_OPAM_CI_COMPILER:-}" \
   -e NATS_ML_OPAM_CI_DUNE="${NATS_ML_OPAM_CI_DUNE:-}" \
-  -e NATS_ML_OPAM_CI_ROOT="${NATS_ML_OPAM_CI_ROOT:-}" \
+  -e NATS_ML_OPAM_CI_CONTAINER_ROOT="${NATS_ML_OPAM_CI_ROOT:+/nats-ml-opam-root}" \
   "$IMAGE" \
   bash -lc "
     set -euo pipefail
@@ -44,8 +51,8 @@ docker "${docker_args[@]}" \
     opam_ci_require_opam
     opam_ci_export_env
     LOCAL_REPO_NAME=nats-ml-local
-    if [[ -n \"\${NATS_ML_OPAM_CI_ROOT:-}\" ]]; then
-      export OPAMROOT=/workspace/\$NATS_ML_OPAM_CI_ROOT
+    if [[ -n \"\${NATS_ML_OPAM_CI_CONTAINER_ROOT:-}\" ]]; then
+      export OPAMROOT=\$NATS_ML_OPAM_CI_CONTAINER_ROOT
     else
       export OPAMROOT=/tmp/nats-ml-opam-root
     fi
