@@ -1,0 +1,167 @@
+name: Opam Repro
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  opam-distro-repro:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: alpine-3.22-ocaml-4.14
+            image: ocaml/opam:alpine-3.22-ocaml-4.14
+            mode: expect-unavailable
+            package: nats-client-async
+            compiler: ocaml-base-compiler.4.14.2
+          - label: alpine-3.22-ocaml-5.4
+            image: ocaml/opam:alpine-3.22-ocaml-5.4
+            mode: expect-unavailable
+            package: nats-client-async
+            compiler: ocaml-base-compiler.5.4.0
+          - label: opensuse-15.6-ocaml-5.4
+            image: ocaml/opam:opensuse-15.6-ocaml-5.4
+            mode: build
+            package: nats-client-async
+            compiler: ocaml-base-compiler.5.4.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Cache opam root for ${{ matrix.label }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+          key: ${{ runner.os }}-opam-distro-${{ matrix.label }}-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci-docker.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
+
+      - name: Reproduce ${{ matrix.label }} for ${{ matrix.package }}
+        env:
+          NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
+          NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" "${{ matrix.mode }}" "${{ matrix.package }}"
+
+  opam-opam20-repro:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: opam-2.0-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            package: nats-client-async
+            compiler: ocaml-base-compiler.4.14.2
+          - label: opam-2.0-ocaml-5.4
+            image: ocaml/opam:debian-13-ocaml-5.4
+            package: nats-client
+            compiler: ocaml-base-compiler.5.4.0
+          - label: opam-2.0-ocaml-5.4
+            image: ocaml/opam:debian-13-ocaml-5.4
+            package: nats-client-async
+            compiler: ocaml-base-compiler.5.4.0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Cache opam root for ${{ matrix.label }} / ${{ matrix.package }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+          key: ${{ runner.os }}-opam20-${{ matrix.label }}-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci-docker.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
+
+      - name: Reproduce ${{ matrix.label }} tests for ${{ matrix.package }}
+        env:
+          NATS_ML_OPAM_CI_OPAM_VERSION: 2.0.10
+          NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
+          NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" with-test-opam20 "${{ matrix.package }}"
+
+  opam-extra-arch-repro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: arm32-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/arm/v7
+            package: nats-client-async
+            compiler: ocaml-base-compiler.4.14.2
+          - label: ppc64-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/ppc64le
+            package: nats-client-async
+            compiler: ocaml-base-compiler.4.14.2
+          - label: x86_32-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/386
+            package: nats-client-async
+            compiler: ocaml-base-compiler.4.14.2
+          - label: riscv64-ocaml-5.4
+            image: ocaml/opam:debian-13-ocaml-5.4
+            platform: linux/riscv64
+            mode: expect-unavailable
+            package: nats-client-async
+            compiler: ocaml-base-compiler.5.4.0
+          - label: s390x-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
+            platform: linux/s390x
+            package: nats-client-async
+            compiler: ocaml-base-compiler.4.14.2
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Cache opam root for ${{ matrix.label }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+          key: ${{ runner.os }}-opam-extra-arch-${{ matrix.label }}-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci-docker.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
+
+      - name: Reproduce ${{ matrix.label }} for ${{ matrix.package }}
+        env:
+          NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
+          NATS_ML_OPAM_CI_DOCKER_PLATFORM: ${{ matrix.platform }}
+          NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
+        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" "${{ matrix.mode || 'with-test' }}" "${{ matrix.package }}"
+
+  opam-macos-repro:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - nats-client
+          - nats-client-async
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Cache with-test opam root for ${{ matrix.package }}
+        uses: actions/cache@v4
+        with:
+          path: .opam-with-test-root
+          key: ${{ runner.os }}-opam-with-test-${{ matrix.package }}-${{ hashFiles('.prototools', 'dune-project', 'nats-client.opam', 'nats-client-async.opam', 'nats-client.opam.template', 'nats-client-async.opam.template', 'tests/check-opam-ci.sh', 'tests/opam-ci-lib.sh', 'tests/prepare-opam-ci-artifacts.sh', '.github/workflows/opam-repro.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-opam-with-test-${{ matrix.package }}-
+
+      - name: Install opam
+        run: |
+          if ! command -v opam >/dev/null 2>&1; then
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install opam
+          fi
+          opam --version
+
+      - name: Verify opam --with-test install for ${{ matrix.package }}
+        run: NATS_ML_OPAM_CI_ROOT=.opam-with-test-root ./tests/check-opam-ci.sh with-test "${{ matrix.package }}"
