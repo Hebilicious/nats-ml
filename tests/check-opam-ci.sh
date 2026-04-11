@@ -69,5 +69,8 @@ if [[ "$MODE" == expect-unavailable ]]; then
   fi
 else
   opam_root install --switch="$SWITCH_NAME" --yes "$PACKAGE.$PACKAGE_VERSION"
+  if [[ "$MODE" == with-test || "$MODE" == with-test-opam20 ]]; then
+    opam_root depext --switch="$SWITCH_NAME" --with-test "$PACKAGE.$PACKAGE_VERSION"
+  fi
   opam_ci_run_mode "$MODE" "$PACKAGE.$PACKAGE_VERSION" opam_root reinstall --switch="$SWITCH_NAME" --yes
 fi
