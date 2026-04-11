@@ -16,8 +16,6 @@ depends: [
   "uri"
   "yojson" {>= "2.0.0"}
   "nats-client"
-  "alcotest"
-    {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}
   "odoc" {with-doc}
 ]
 dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
@@ -34,7 +32,7 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}
+    "@runtest" {with-test & (arch = "x86_64" | arch = "arm64")}
     "@doc" {with-doc}
   ]
 ]

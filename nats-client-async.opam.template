@@ -10,7 +10,7 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}
+    "@runtest" {with-test & (arch = "x86_64" | arch = "arm64")}
     "@doc" {with-doc}
   ]
 ]

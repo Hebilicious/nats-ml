@@ -20,8 +20,7 @@
  (depends
   (ocaml (>= 4.14.0))
   dune
-  yojson
-  (alcotest (and :with-test (>= :opam-version "2.1")))))
+  yojson))
 
 (package
  (name nats-client-async)
@@ -35,8 +34,4 @@
   async_unix
   uri
   (yojson (>= 2.0.0))
-  nats-client
-  (alcotest
-   (and :with-test
-    (>= :opam-version "2.1")
-    (or (= :arch "x86_64") (= :arch "arm64"))))))
+  nats-client))

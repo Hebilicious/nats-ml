@@ -45,7 +45,7 @@ jobs:
 
       - name: Install deps
         run: |
-          opam install . --deps-only --yes alcotest
+          opam install . --deps-only --yes
           if [ "${{ matrix.package }}" = "nats-client-async" ]; then
             opam pin add --yes --no-action -k path nats-client .
             opam install --yes nats-client

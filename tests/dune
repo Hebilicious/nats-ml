@@ -1,13 +1,23 @@
-; Package-specific protocol tests that should pass when only nats-client is installed.
+; Published package tests stay dependency-light so opam can run them across older
+; solvers without pulling the alcotest/js_of_ocaml closure.
+(tests
+ (names published_test_protocol)
+ (package nats-client)
+ (libraries nats-client))
+
+; Published async package tests stay within the runtime dependency closure.
+(tests
+ (names published_test_async_client_unit)
+ (package nats-client-async)
+ (libraries core async async_unix uri yojson nats-client nats-client-async))
+
+; Full unit suites stay in repo CI, where we can depend on alcotest freely.
 (tests
  (names test_protocol)
- (package nats-client)
  (libraries alcotest nats-client))
 
-; Async-only tests that require the nats-client-async package and its runtime deps.
 (tests
  (names test_async_client_unit)
- (package nats-client-async)
  (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
 
 ; Repo-only async transport tests rely on a local TCP listener and stay out of the

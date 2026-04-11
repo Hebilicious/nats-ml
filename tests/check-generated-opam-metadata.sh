@@ -25,10 +25,19 @@ assert_contains() {
   grep -F "$needle" "$file" >/dev/null
 }
 
-assert_contains '"alcotest" {with-test & opam-version >= "2.1"}' nats-client.opam
-assert_contains '"@runtest" {with-test & opam-version >= "2.1"}' nats-client.opam
+assert_not_contains() {
+  local needle=$1
+  local file=$2
+
+  if grep -F "$needle" "$file" >/dev/null; then
+    echo "unexpected metadata in $file: $needle" >&2
+    exit 1
+  fi
+}
+
+assert_not_contains '"alcotest"' nats-client.opam
+assert_contains '"@runtest" {with-test}' nats-client.opam
 assert_contains 'available: [ os-distribution != "alpine" & arch != "riscv64" ]' nats-client-async.opam
-assert_contains '"alcotest"' nats-client-async.opam
-assert_contains '{with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
-assert_contains '"@runtest" {with-test & opam-version >= "2.1" & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
+assert_not_contains '"alcotest"' nats-client-async.opam
+assert_contains '"@runtest" {with-test & (arch = "x86_64" | arch = "arm64")}' nats-client-async.opam
 assert_contains '"yojson" {>= "2.0.0"}' nats-client-async.opam
