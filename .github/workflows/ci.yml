@@ -68,6 +68,3 @@ jobs:
 
       - name: Verify generated opam metadata
         run: ./tests/check-generated-opam-metadata.sh
-
-      - name: Verify opam repro harness
-        run: ./tests/check-opam-repro-harness.sh

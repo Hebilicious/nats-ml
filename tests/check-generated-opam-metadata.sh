@@ -36,10 +36,12 @@ assert_not_contains() {
 }
 
 assert_not_contains '"alcotest"' nats-client.opam
+assert_not_contains '{with-test}' nats-client.opam
 assert_not_contains '"@runtest"' nats-client.opam
 assert_not_contains 'opam-version >= "2.1"' nats-client.opam
 assert_contains 'available: [ os-distribution != "alpine" & arch != "riscv64" ]' nats-client-async.opam
 assert_not_contains 'opam-version >= "2.1"' nats-client-async.opam
 assert_not_contains '"alcotest"' nats-client-async.opam
+assert_not_contains '{with-test}' nats-client-async.opam
 assert_not_contains '"@runtest"' nats-client-async.opam
 assert_contains '"yojson" {>= "2.0.0"}' nats-client-async.opam
