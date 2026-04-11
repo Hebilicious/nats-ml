@@ -1,0 +1,54 @@
+name: Opam Targets
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  opam-2-0:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: opam-2.0-ocaml-4.14
+            package: nats-client-async
+            image: ocaml/opam:ubuntu-24.04-ocaml-4.14
+          - target: opam-2.0-ocaml-5.4
+            package: nats-client
+            image: ocaml/opam:ubuntu-24.04-ocaml-5.4
+          - target: opam-2.0-ocaml-5.4
+            package: nats-client-async
+            image: ocaml/opam:ubuntu-24.04-ocaml-5.4
+
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Restore opam download cache
+        uses: actions/cache@v4
+        with:
+          path: /home/opam/.opam/download-cache
+          key: opam-targets-${{ matrix.target }}-${{ matrix.package }}-${{ hashFiles('nats-client.opam', 'nats-client-async.opam', '.github/workflows/opam-targets.yml') }}
+          restore-keys: |
+            opam-targets-${{ matrix.target }}-${{ matrix.package }}-
+
+      - name: Verify target toolchain
+        run: |
+          opam --version
+          opam --version | grep '^2.0'
+          ocaml -version
+
+      - name: Refresh opam repository
+        run: opam update
+
+      - name: Mirror opam-ci test install
+        run: |
+          opam pin add --yes --no-action -k path nats-client .
+          opam pin add --yes --no-action -k path nats-client-async .
+          opam install --yes --with-test ${{ matrix.package }}

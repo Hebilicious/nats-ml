@@ -59,31 +59,3 @@ jobs:
           ! grep -F '{with-test}' nats-client-async.opam
           ! grep -F '"@runtest"' nats-client-async.opam
           ! grep -F 'opam-version >= "2.1"' nats-client-async.opam
-
-  published-opam-install:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - package: nats-client
-            opam_files: ./nats-client.opam
-          - package: nats-client-async
-            opam_files: ./nats-client.opam ./nats-client-async.opam
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup toolchain
-        uses: moonrepo/setup-toolchain@v0
-        with:
-          auto-install: true
-
-      - name: Install published package in a fresh switch
-        env:
-          OPAMROOT: ${{ github.workspace }}/.opam-package-root-${{ matrix.package }}
-        run: |
-          opam init --root="$OPAMROOT" --bare --disable-sandboxing --no-setup --yes default https://opam.ocaml.org
-          opam switch create --root="$OPAMROOT" --yes ci ocaml-base-compiler.4.14.0 dune.3.19.0
-          opam install --root="$OPAMROOT" --switch=ci --yes ${{ matrix.opam_files }}
