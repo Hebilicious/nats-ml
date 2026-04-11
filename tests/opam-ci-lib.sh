@@ -182,6 +182,6 @@ opam_ci_run_depext() {
   local switch_name=$2
   local package_version=$3
 
-  OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam install -y opam-depext
-  OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam depext --with-test "$package_version"
+  OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" \
+    opam_ci_opam list --readonly --with-test --external "--resolve=$package_version"
 }
