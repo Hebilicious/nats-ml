@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  opam-2-0:
+  opam-target:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -16,15 +16,33 @@ jobs:
           - target: opam-2.0-ocaml-4.14
             package: nats-client-async
             image: ocaml/opam:ubuntu-24.04-ocaml-4.14
+            opam_bin: opam-2.0
+            expect: install
           - target: opam-2.0-ocaml-5.4
             package: nats-client
             image: ocaml/opam:ubuntu-24.04-ocaml-5.4
+            opam_bin: opam-2.0
+            expect: install
           - target: opam-2.0-ocaml-5.4
             package: nats-client-async
             image: ocaml/opam:ubuntu-24.04-ocaml-5.4
-
-    container:
-      image: ${{ matrix.image }}
+            opam_bin: opam-2.0
+            expect: install
+          - target: alpine-3.22-ocaml-4.14
+            package: nats-client
+            image: ocaml/opam:alpine-3.22-ocaml-4.14
+            opam_bin: opam
+            expect: install
+          - target: alpine-3.22-ocaml-4.14
+            package: nats-client-async
+            image: ocaml/opam:alpine-3.22-ocaml-4.14
+            opam_bin: opam
+            expect: unavailable
+          - target: opensuse-15.6-ocaml-5.4
+            package: nats-client-async
+            image: ocaml/opam:opensuse-15.6-ocaml-5.4
+            opam_bin: opam
+            expect: install
 
     steps:
       - name: Checkout
@@ -33,22 +51,49 @@ jobs:
       - name: Restore opam download cache
         uses: actions/cache@v4
         with:
-          path: /home/opam/.opam/download-cache
+          path: .opam-download-cache/${{ matrix.target }}-${{ matrix.package }}
           key: opam-targets-${{ matrix.target }}-${{ matrix.package }}-${{ hashFiles('nats-client.opam', 'nats-client-async.opam', '.github/workflows/opam-targets.yml') }}
           restore-keys: |
             opam-targets-${{ matrix.target }}-${{ matrix.package }}-
 
-      - name: Verify target toolchain
+      - name: Mirror opam-ci target
+        env:
+          CACHE_DIR: .opam-download-cache/${{ matrix.target }}-${{ matrix.package }}
         run: |
-          opam --version
-          opam --version | grep '^2.0'
-          ocaml -version
+          mkdir -p "$CACHE_DIR"
+          chmod 777 "$CACHE_DIR"
+          docker run --rm \
+            -v "$PWD":/src \
+            -v "$PWD/$CACHE_DIR:/home/opam/.opam/download-cache" \
+            -w /src \
+            "${{ matrix.image }}" \
+            sh -lc '
+              set -eu
+              OPAM_BIN="${{ matrix.opam_bin }}"
+              PACKAGE="${{ matrix.package }}"
+              EXPECT="${{ matrix.expect }}"
 
-      - name: Refresh opam repository
-        run: opam update
+              command -v "$OPAM_BIN"
+              "$OPAM_BIN" --version
 
-      - name: Mirror opam-ci test install
-        run: |
-          opam pin add --yes --no-action -k path nats-client .
-          opam pin add --yes --no-action -k path nats-client-async .
-          opam install --yes --with-test ${{ matrix.package }}
+              if [ "$OPAM_BIN" = "opam-2.0" ]; then
+                "$OPAM_BIN" --version | grep "^2.0"
+              fi
+
+              "$OPAM_BIN" pin add --yes --no-action -k path nats-client /src
+              "$OPAM_BIN" pin add --yes --no-action -k path nats-client-async /src
+
+              if [ "$EXPECT" = install ]; then
+                "$OPAM_BIN" install --yes --with-test "$PACKAGE"
+                exit 0
+              fi
+
+              if "$OPAM_BIN" install --yes --with-test "$PACKAGE" > /tmp/opam.log 2>&1; then
+                cat /tmp/opam.log
+                echo "expected $PACKAGE to be unavailable on ${{ matrix.target }}" >&2
+                exit 1
+              fi
+
+              cat /tmp/opam.log
+              grep -Ei "not available|availability" /tmp/opam.log
+            '
