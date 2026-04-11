@@ -10,7 +10,7 @@ opam_ci_usage() {
 
 opam_ci_validate_mode() {
   case "$1" in
-    build|lower-bounds|with-test|with-test-opam20|expect-unavailable) ;;
+    build|lower-bounds|with-test|expect-unavailable) ;;
     *) return 1 ;;
   esac
 }
@@ -38,15 +38,6 @@ opam_ci_resolve_opam_bin() {
     local opam_dir
     local opam_url
 
-    if [[ "${NATS_ML_OPAM_CI_OPAM_VERSION}" == 2.0* && -x /usr/bin/opam-2.0 ]]; then
-      OPAM_BIN=/usr/bin/opam-2.0
-      opam_dir=${NATS_ML_OPAM_CI_OPAM_DIR:-$(mktemp -d)}
-      OPAM_BIN_CLEANUP_DIR=$opam_dir
-      ln -sf "$OPAM_BIN" "$opam_dir/opam"
-      export PATH="$opam_dir:$PATH"
-      return 0
-    fi
-
     download_version=$NATS_ML_OPAM_CI_OPAM_VERSION
     if [[ "$download_version" == 2.0 ]]; then
       download_version=2.0.10
@@ -67,7 +58,6 @@ opam_ci_resolve_opam_bin() {
     opam_url="https://github.com/ocaml/opam/releases/download/${download_version}/opam-${download_version}-${arch}"
     curl -fsSL "$opam_url" -o "$OPAM_BIN"
     chmod +x "$OPAM_BIN"
-    export PATH="$opam_dir:$PATH"
   elif [[ -n "${NATS_ML_OPAM_CI_OPAM_BIN:-}" ]]; then
     OPAM_BIN=$NATS_ML_OPAM_CI_OPAM_BIN
   elif [[ -x /usr/bin/opam-dev ]]; then
@@ -79,31 +69,6 @@ opam_ci_resolve_opam_bin() {
 
 opam_ci_opam() {
   "$OPAM_BIN" "$@"
-}
-
-opam_ci_ensure_external_depext_plugin() {
-  if command -v opam-depext >/dev/null 2>&1; then
-    return 0
-  fi
-
-  if ! command -v opam >/dev/null 2>&1; then
-    echo "opam-depext is required for opam 2.0 compatibility checks." >&2
-    exit 1
-  fi
-
-  env -u OPAMROOT -u OPAMSWITCH opam install -y opam-depext
-  eval "$(env -u OPAMROOT -u OPAMSWITCH opam env)"
-}
-
-opam_ci_depext() {
-  local package_version=$1
-
-  if ! command -v opam-depext >/dev/null 2>&1; then
-    echo "opam-depext is required for opam 2.0 compatibility checks." >&2
-    exit 1
-  fi
-
-  opam-depext -y --with-test "$package_version"
 }
 
 opam_ci_configure_solver() {
@@ -157,13 +122,6 @@ opam_ci_set_mode_defaults() {
       DUNE_PACKAGE=${NATS_ML_OPAM_CI_DUNE:-dune.3.22.1}
       INIT_ARGS=()
       ;;
-    with-test-opam20)
-      OCAML_COMPILER=${NATS_ML_OPAM_CI_COMPILER:-ocaml-base-compiler.5.4.0}
-      DUNE_PACKAGE=${NATS_ML_OPAM_CI_DUNE:-dune.3.22.1}
-      INIT_ARGS=()
-      NATS_ML_OPAM_CI_OPAM_VERSION=${NATS_ML_OPAM_CI_OPAM_VERSION:-2.0.10}
-      NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER=1
-      ;;
     expect-unavailable)
       OCAML_COMPILER=${NATS_ML_OPAM_CI_COMPILER:-ocaml-base-compiler.5.4.0}
       DUNE_PACKAGE=${NATS_ML_OPAM_CI_DUNE:-dune.3.22.1}
@@ -212,12 +170,6 @@ opam_ci_run_mode() {
       ;;
     with-test)
       ("$opam_cmd" reinstall "$@" --with-test "$package_version") || true
-      "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
-      ;;
-    with-test-opam20)
-      (opam_ci_depext "$package_version" && \
-        "$opam_cmd" reinstall "$@" --with-test "$package_version") || true
-      opam_ci_depext "$package_version"
       "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
       ;;
   esac

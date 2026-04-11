@@ -53,17 +53,17 @@ jobs:
         include:
           - label: opam-2.0-ocaml-4.14
             image: ocaml/opam:debian-13-ocaml-4.14
-            mode: with-test-opam20
+            mode: with-test
             package: nats-client-async
             compiler: ocaml-base-compiler.4.14.2
           - label: opam-2.0-ocaml-5.4
             image: ocaml/opam:debian-13-ocaml-5.4
-            mode: with-test-opam20
+            mode: with-test
             package: nats-client
             compiler: ocaml-base-compiler.5.4.0
           - label: opam-2.0-ocaml-5.4
             image: ocaml/opam:debian-13-ocaml-5.4
-            mode: with-test-opam20
+            mode: with-test
             package: nats-client-async
             compiler: ocaml-base-compiler.5.4.0
 

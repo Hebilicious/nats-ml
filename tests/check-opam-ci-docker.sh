@@ -13,9 +13,9 @@ ARTIFACT_ROOT=
 DOCKER_PLATFORM=${NATS_ML_OPAM_CI_DOCKER_PLATFORM:-}
 CACHED_OPAM_ROOT_HOST=
 
-[[ -n "$IMAGE" ]] || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
-opam_ci_validate_mode "$MODE" || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
-opam_ci_validate_package "$PACKAGE" || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
+[[ -n "$IMAGE" ]] || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|expect-unavailable> <nats-client|nats-client-async>"
+opam_ci_validate_mode "$MODE" || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|expect-unavailable> <nats-client|nats-client-async>"
+opam_ci_validate_package "$PACKAGE" || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|expect-unavailable> <nats-client|nats-client-async>"
 if [[ -n "$DOCKER_PLATFORM" ]]; then
   NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER=1
 fi
@@ -51,9 +51,6 @@ docker "${docker_args[@]}" \
     set -euo pipefail
     source /workspace/tests/opam-ci-lib.sh
     opam_ci_set_mode_defaults $MODE
-    if [[ '$MODE' == 'with-test-opam20' ]]; then
-      opam_ci_ensure_external_depext_plugin
-    fi
     opam_ci_resolve_opam_bin
     opam_ci_require_opam
     opam_ci_export_env
@@ -91,7 +88,6 @@ docker "${docker_args[@]}" \
       fi
     else
       opam_root install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION
-      export OPAMSWITCH=nats-opam-ci
       opam_ci_run_mode $MODE $PACKAGE.$PACKAGE_VERSION opam_root --switch=nats-opam-ci -y
     fi
   "
