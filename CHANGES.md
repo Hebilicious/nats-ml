@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.5 - 2026-04-11
+
+
+- Fix the published opam package metadata and release CI so releases no longer ship repo-only tests and now cover the previously flaky upstream opam targets.
+
+
 ## 0.0.4 - 2026-04-11
 
 
