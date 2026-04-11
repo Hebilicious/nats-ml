@@ -66,9 +66,10 @@ docker "${docker_args[@]}" \
       opam_ci_init_root
     fi
     opam_ci_configure_solver
-    if ! opam_root switch list --short | grep -Fxq nats-opam-ci; then
-      opam_root switch create -y nats-opam-ci \$OCAML_COMPILER
+    if opam_root switch list --short | grep -Fxq nats-opam-ci; then
+      opam_root switch remove -y nats-opam-ci
     fi
+    opam_root switch create -y nats-opam-ci \$OCAML_COMPILER
     opam_root install --switch=nats-opam-ci -y \$DUNE_PACKAGE
     if opam_root repository list --all --short | grep -Fxq \"\$LOCAL_REPO_NAME\"; then
       opam_root repository set-url \"\$LOCAL_REPO_NAME\" file:///workspace/$ARTIFACT_BASENAME/repo

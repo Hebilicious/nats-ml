@@ -40,9 +40,11 @@ fi
 
 opam_ci_prepare_artifacts "$REPO_ROOT" "$SCRIPT_DIR"
 
-if ! opam_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
-  opam_root switch create --yes "$SWITCH_NAME" "$OCAML_COMPILER"
+if opam_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
+  opam_root switch remove --yes "$SWITCH_NAME"
 fi
+
+opam_root switch create --yes "$SWITCH_NAME" "$OCAML_COMPILER"
 
 opam_root install --switch="$SWITCH_NAME" --yes "$DUNE_PACKAGE"
 if opam_root repository list --all --short | grep -Fxq "$LOCAL_REPO_NAME"; then
