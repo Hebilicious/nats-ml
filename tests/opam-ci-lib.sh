@@ -75,6 +75,20 @@ opam_ci_opam() {
   "$OPAM_BIN" "$@"
 }
 
+opam_ci_ensure_external_depext_plugin() {
+  if command -v opam-depext >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if ! command -v opam >/dev/null 2>&1; then
+    echo "opam-depext is required for opam 2.0 compatibility checks." >&2
+    exit 1
+  fi
+
+  env -u OPAMROOT -u OPAMSWITCH opam install -y opam-depext
+  eval "$(env -u OPAMROOT -u OPAMSWITCH opam env)"
+}
+
 opam_ci_configure_solver() {
   unset OPAMEXTERNALSOLVER || true
   if [[ -n "${NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER:-}" ]]; then
@@ -184,9 +198,9 @@ opam_ci_run_mode() {
       "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
       ;;
     with-test-opam20)
-      ("$opam_cmd" depext "$@" --with-test "$package_version" && \
+      (opam_ci_opam depext -y --with-test "$package_version" && \
         "$opam_cmd" reinstall "$@" --with-test "$package_version") || true
-      "$opam_cmd" depext "$@" --with-test "$package_version"
+      opam_ci_opam depext -y --with-test "$package_version"
       "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
       ;;
   esac

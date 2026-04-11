@@ -51,6 +51,9 @@ docker "${docker_args[@]}" \
     set -euo pipefail
     source /workspace/tests/opam-ci-lib.sh
     opam_ci_set_mode_defaults $MODE
+    if [[ '$MODE' == 'with-test-opam20' ]]; then
+      opam_ci_ensure_external_depext_plugin
+    fi
     opam_ci_resolve_opam_bin
     opam_ci_require_opam
     opam_ci_export_env
@@ -88,6 +91,7 @@ docker "${docker_args[@]}" \
       fi
     else
       opam_root install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION
+      export OPAMSWITCH=nats-opam-ci
       opam_ci_run_mode $MODE $PACKAGE.$PACKAGE_VERSION opam_root --switch=nats-opam-ci -y
     fi
   "
