@@ -31,7 +31,7 @@ fi
 if [[ -n "${NATS_ML_OPAM_CI_ROOT:-}" ]]; then
   CACHED_OPAM_ROOT_HOST="$REPO_ROOT/$NATS_ML_OPAM_CI_ROOT"
   mkdir -p "$CACHED_OPAM_ROOT_HOST"
-  chmod 0777 "$CACHED_OPAM_ROOT_HOST"
+  chmod -R 0777 "$CACHED_OPAM_ROOT_HOST"
   docker_args+=(-v "$CACHED_OPAM_ROOT_HOST:/nats-ml-opam-root")
 fi
 
