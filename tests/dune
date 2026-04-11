@@ -11,14 +11,23 @@
  (package nats-client-async)
  (libraries core async async_unix uri yojson nats-client nats-client-async))
 
-; Full unit suites stay in repo CI, where we can depend on alcotest freely.
-(tests
- (names test_protocol)
+; Full unit suites stay in repo CI, where we can depend on alcotest freely
+; without affecting published package metadata or package-scoped @runtest.
+(executable
+ (name test_protocol)
  (libraries alcotest nats-client))
 
-(tests
- (names test_async_client_unit)
+(rule
+ (alias repo-unit)
+ (action (run %{exe:test_protocol.exe})))
+
+(executable
+ (name test_async_client_unit)
  (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
+
+(rule
+ (alias repo-unit)
+ (action (run %{exe:test_async_client_unit.exe})))
 
 ; Repo-only async transport tests rely on a local TCP listener and stay out of the
 ; published opam package test set.
