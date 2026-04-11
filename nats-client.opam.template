@@ -1,3 +1,5 @@
+available: [ opam-version >= "2.1" ]
+
 build: [
   ["dune" "subst"] {dev}
   [

@@ -53,14 +53,17 @@ jobs:
         include:
           - label: opam-2.0-ocaml-4.14
             image: ocaml/opam:debian-13-ocaml-4.14
+            mode: expect-unavailable
             package: nats-client-async
             compiler: ocaml-base-compiler.4.14.2
           - label: opam-2.0-ocaml-5.4
             image: ocaml/opam:debian-13-ocaml-5.4
+            mode: expect-unavailable
             package: nats-client
             compiler: ocaml-base-compiler.5.4.0
           - label: opam-2.0-ocaml-5.4
             image: ocaml/opam:debian-13-ocaml-5.4
+            mode: expect-unavailable
             package: nats-client-async
             compiler: ocaml-base-compiler.5.4.0
 
@@ -79,7 +82,7 @@ jobs:
           NATS_ML_OPAM_CI_OPAM_VERSION: 2.0.10
           NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
           NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
-        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" with-test-opam20 "${{ matrix.package }}"
+        run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" "${{ matrix.mode }}" "${{ matrix.package }}"
 
   opam-extra-arch-repro:
     runs-on: ubuntu-latest

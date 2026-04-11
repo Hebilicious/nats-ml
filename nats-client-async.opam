@@ -20,7 +20,7 @@ depends: [
 ]
 dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
 x-maintenance-intent: ["(latest)"]
-available: [ os-distribution != "alpine" & arch != "riscv64" ]
+available: [ opam-version >= "2.1" & os-distribution != "alpine" & arch != "riscv64" ]
 
 build: [
   ["dune" "subst"] {dev}
