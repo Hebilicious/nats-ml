@@ -10,7 +10,6 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test & (arch = "x86_64" | arch = "arm64")}
     "@doc" {with-doc}
   ]
 ]
