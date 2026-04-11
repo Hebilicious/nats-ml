@@ -182,9 +182,6 @@ opam_ci_run_depext() {
   local switch_name=$2
   local package_version=$3
 
-  if ! OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam depext --help >/dev/null 2>&1; then
-    OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam install -y opam-depext
-  fi
-
+  OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam install -y opam-depext
   OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam depext --with-test "$package_version"
 }
