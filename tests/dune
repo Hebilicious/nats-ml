@@ -1,17 +1,19 @@
-; Package-specific protocol tests that should pass when only nats-client is installed.
-(tests
- (names test_protocol)
- (package nats-client)
+(executable
+ (name test_protocol)
  (libraries alcotest nats-client))
 
-; Async-only tests that require the nats-client-async package and its runtime deps.
-(tests
- (names test_async_client_unit)
- (package nats-client-async)
+(rule
+ (alias repo-unit)
+ (action (run %{exe:test_protocol.exe})))
+
+(executable
+ (name test_async_client_unit)
  (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
 
-; Repo-only async transport tests rely on a local TCP listener and stay out of the
-; published opam package test set.
+(rule
+ (alias repo-unit)
+ (action (run %{exe:test_async_client_unit.exe})))
+
 (executable
  (name test_async_client_integration)
  (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
@@ -20,7 +22,6 @@
  (alias repo-integration)
  (action (run %{exe:test_async_client_integration.exe})))
 
-; Standalone executable used by CI and local integration runs against Docker NATS.
 (executable
  (name real_nats_integration)
  (libraries core async async_unix uri yojson nats-client nats-client-async))
