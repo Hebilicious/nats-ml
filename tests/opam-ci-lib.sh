@@ -130,6 +130,9 @@ opam_ci_set_mode_defaults() {
       OCAML_COMPILER=${NATS_ML_OPAM_CI_COMPILER:-ocaml-base-compiler.5.4.0}
       DUNE_PACKAGE=${NATS_ML_OPAM_CI_DUNE:-dune.3.22.1}
       INIT_ARGS=(--disable-sandboxing)
+      if [[ "${NATS_ML_OPAM_CI_OPAM_VERSION:-}" == 2.0* ]]; then
+        NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER=1
+      fi
       ;;
   esac
 }
