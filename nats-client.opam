@@ -15,8 +15,6 @@ depends: [
 ]
 dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
 x-maintenance-intent: ["(latest)"]
-available: [ opam-version >= "2.1" ]
-
 build: [
   ["dune" "subst"] {dev}
   [
