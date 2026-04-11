@@ -39,6 +39,7 @@ if [[ ! -f "$OPAM_ROOT/config" ]]; then
 fi
 
 opam_ci_prepare_artifacts "$REPO_ROOT" "$SCRIPT_DIR"
+OPAMROOT="$OPAM_ROOT" opam_ci_configure_solver
 
 if opam_root switch list --short | grep -Fxq "$SWITCH_NAME"; then
   opam_root switch remove --yes "$SWITCH_NAME"
@@ -72,7 +73,7 @@ if [[ "$MODE" == expect-unavailable ]]; then
 else
   opam_root install --switch="$SWITCH_NAME" --yes "$PACKAGE.$PACKAGE_VERSION"
   if [[ "$MODE" == with-test || "$MODE" == with-test-opam20 ]]; then
-    OPAMROOT="$OPAM_ROOT" OPAMSWITCH="$SWITCH_NAME" opam_ci_opam depext --with-test "$PACKAGE.$PACKAGE_VERSION"
+    opam_ci_run_depext "$OPAM_ROOT" "$SWITCH_NAME" "$PACKAGE.$PACKAGE_VERSION"
   fi
   opam_ci_run_mode "$MODE" "$PACKAGE.$PACKAGE_VERSION" opam_root reinstall --switch="$SWITCH_NAME" --yes
 fi

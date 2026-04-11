@@ -66,6 +66,7 @@ opam_ci_opam() {
 }
 
 opam_ci_configure_solver() {
+  unset OPAMEXTERNALSOLVER || true
   if [[ -n "${NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER:-}" ]]; then
     return 0
   fi
@@ -78,11 +79,7 @@ opam_ci_export_env() {
   export OPAMDOWNLOADJOBS=1
   export OPAMERRLOGLEN=0
   export OPAMPRECISETRACKING=1
-  if [[ -z "${NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER:-}" ]]; then
-    export OPAMEXTERNALSOLVER=builtin-0install
-  else
-    unset OPAMEXTERNALSOLVER || true
-  fi
+  unset OPAMEXTERNALSOLVER || true
 }
 
 opam_ci_init_root() {
@@ -178,4 +175,16 @@ opam_ci_run_mode() {
       "$@" --with-test "$package_version"
       ;;
   esac
+}
+
+opam_ci_run_depext() {
+  local opam_root=$1
+  local switch_name=$2
+  local package_version=$3
+
+  if ! OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam depext --help >/dev/null 2>&1; then
+    OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam install -y opam-depext
+  fi
+
+  OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" opam_ci_opam depext --with-test "$package_version"
 }

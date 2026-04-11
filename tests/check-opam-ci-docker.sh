@@ -16,6 +16,9 @@ CACHED_OPAM_ROOT_HOST=
 [[ -n "$IMAGE" ]] || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
 opam_ci_validate_mode "$MODE" || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
 opam_ci_validate_package "$PACKAGE" || opam_ci_usage "$0" "<docker-image> <build|lower-bounds|with-test|with-test-opam20|expect-unavailable> <nats-client|nats-client-async>"
+if [[ -n "$DOCKER_PLATFORM" ]]; then
+  NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER=1
+fi
 opam_ci_set_mode_defaults "$MODE"
 
 trap opam_ci_cleanup_artifacts EXIT
@@ -41,6 +44,7 @@ docker "${docker_args[@]}" \
   -e NATS_ML_OPAM_CI_OPAM_VERSION="${NATS_ML_OPAM_CI_OPAM_VERSION:-}" \
   -e NATS_ML_OPAM_CI_COMPILER="${NATS_ML_OPAM_CI_COMPILER:-}" \
   -e NATS_ML_OPAM_CI_DUNE="${NATS_ML_OPAM_CI_DUNE:-}" \
+  -e NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER="${NATS_ML_OPAM_CI_DISABLE_BUILTIN_SOLVER:-}" \
   -e NATS_ML_OPAM_CI_CONTAINER_ROOT="${NATS_ML_OPAM_CI_ROOT:+/nats-ml-opam-root}" \
   "$IMAGE" \
   bash -lc "
@@ -85,7 +89,7 @@ docker "${docker_args[@]}" \
     else
       opam_root install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION
       if [[ '$MODE' == 'with-test' || '$MODE' == 'with-test-opam20' ]]; then
-        OPAMROOT="\$OPAMROOT" OPAMSWITCH=nats-opam-ci opam_ci_opam depext --with-test $PACKAGE.$PACKAGE_VERSION
+        opam_ci_run_depext "\$OPAMROOT" nats-opam-ci $PACKAGE.$PACKAGE_VERSION
       fi
       opam_ci_run_mode $MODE $PACKAGE.$PACKAGE_VERSION opam_root reinstall --switch=nats-opam-ci -y
     fi
