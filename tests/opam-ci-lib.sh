@@ -33,9 +33,19 @@ opam_ci_require_opam() {
 
 opam_ci_resolve_opam_bin() {
   if [[ -n "${NATS_ML_OPAM_CI_OPAM_VERSION:-}" ]]; then
+    if [[ "${NATS_ML_OPAM_CI_OPAM_VERSION}" == 2.0* && -x /usr/bin/opam-2.0 ]]; then
+      OPAM_BIN=/usr/bin/opam-2.0
+      return 0
+    fi
+
     local arch
+    local download_version
     local opam_dir
     local opam_url
+    download_version=$NATS_ML_OPAM_CI_OPAM_VERSION
+    if [[ "$download_version" == 2.0 ]]; then
+      download_version=2.0.10
+    fi
 
     case "$(uname -m)" in
       x86_64|amd64) arch=x86_64-linux ;;
@@ -49,7 +59,7 @@ opam_ci_resolve_opam_bin() {
     opam_dir=${NATS_ML_OPAM_CI_OPAM_DIR:-$(mktemp -d)}
     OPAM_BIN_CLEANUP_DIR=$opam_dir
     OPAM_BIN="$opam_dir/opam"
-    opam_url="https://github.com/ocaml/opam/releases/download/${NATS_ML_OPAM_CI_OPAM_VERSION}/opam-${NATS_ML_OPAM_CI_OPAM_VERSION}-${arch}"
+    opam_url="https://github.com/ocaml/opam/releases/download/${download_version}/opam-${download_version}-${arch}"
     curl -fsSL "$opam_url" -o "$OPAM_BIN"
     chmod +x "$OPAM_BIN"
   elif [[ -n "${NATS_ML_OPAM_CI_OPAM_BIN:-}" ]]; then
@@ -157,7 +167,8 @@ opam_ci_cleanup_artifacts() {
 opam_ci_run_mode() {
   local mode=$1
   local package_version=$2
-  shift 2
+  local opam_cmd=$3
+  shift 3
 
   case "$mode" in
     build)
@@ -166,22 +177,17 @@ opam_ci_run_mode() {
       OPAMCRITERIA="+removed,+count[version-lag,solution]" \
       OPAMFIXUPCRITERIA="+removed,+count[version-lag,solution]" \
       OPAMUPGRADECRITERIA="+removed,+count[version-lag,solution]" \
-        "$@" "$package_version"
+        "$opam_cmd" reinstall "$@" "$package_version"
       ;;
     with-test)
-      "$@" --with-test "$package_version"
+      ("$opam_cmd" reinstall "$@" --with-test "$package_version") || true
+      "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
       ;;
     with-test-opam20)
-      "$@" --with-test "$package_version"
+      ("$opam_cmd" depext "$@" --with-test "$package_version" && \
+        "$opam_cmd" reinstall "$@" --with-test "$package_version") || true
+      "$opam_cmd" depext "$@" --with-test "$package_version"
+      "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
       ;;
   esac
-}
-
-opam_ci_run_depext() {
-  local opam_root=$1
-  local switch_name=$2
-  local package_version=$3
-
-  OPAMROOT="$opam_root" OPAMSWITCH="$switch_name" \
-    opam_ci_opam list --readonly --with-test --external "--resolve=$package_version"
 }

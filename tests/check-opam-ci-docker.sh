@@ -88,9 +88,6 @@ docker "${docker_args[@]}" \
       fi
     else
       opam_root install --switch=nats-opam-ci -y $PACKAGE.$PACKAGE_VERSION
-      if [[ '$MODE' == 'with-test' || '$MODE' == 'with-test-opam20' ]]; then
-        opam_ci_run_depext "\$OPAMROOT" nats-opam-ci $PACKAGE.$PACKAGE_VERSION
-      fi
-      opam_ci_run_mode $MODE $PACKAGE.$PACKAGE_VERSION opam_root reinstall --switch=nats-opam-ci -y
+      opam_ci_run_mode $MODE $PACKAGE.$PACKAGE_VERSION opam_root --switch=nats-opam-ci -y
     fi
   "

@@ -79,7 +79,7 @@ jobs:
 
       - name: Reproduce ${{ matrix.label }} tests for ${{ matrix.package }}
         env:
-          NATS_ML_OPAM_CI_OPAM_VERSION: 2.0.10
+          NATS_ML_OPAM_CI_OPAM_VERSION: 2.0
           NATS_ML_OPAM_CI_COMPILER: ${{ matrix.compiler }}
           NATS_ML_OPAM_CI_ROOT: .opam-ci-docker-root/${{ matrix.label }}-${{ matrix.package }}
         run: ./tests/check-opam-ci-docker.sh "${{ matrix.image }}" "${{ matrix.mode }}" "${{ matrix.package }}"
