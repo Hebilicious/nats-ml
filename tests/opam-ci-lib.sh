@@ -33,15 +33,20 @@ opam_ci_require_opam() {
 
 opam_ci_resolve_opam_bin() {
   if [[ -n "${NATS_ML_OPAM_CI_OPAM_VERSION:-}" ]]; then
-    if [[ "${NATS_ML_OPAM_CI_OPAM_VERSION}" == 2.0* && -x /usr/bin/opam-2.0 ]]; then
-      OPAM_BIN=/usr/bin/opam-2.0
-      return 0
-    fi
-
     local arch
     local download_version
     local opam_dir
     local opam_url
+
+    if [[ "${NATS_ML_OPAM_CI_OPAM_VERSION}" == 2.0* && -x /usr/bin/opam-2.0 ]]; then
+      OPAM_BIN=/usr/bin/opam-2.0
+      opam_dir=${NATS_ML_OPAM_CI_OPAM_DIR:-$(mktemp -d)}
+      OPAM_BIN_CLEANUP_DIR=$opam_dir
+      ln -sf "$OPAM_BIN" "$opam_dir/opam"
+      export PATH="$opam_dir:$PATH"
+      return 0
+    fi
+
     download_version=$NATS_ML_OPAM_CI_OPAM_VERSION
     if [[ "$download_version" == 2.0 ]]; then
       download_version=2.0.10
@@ -62,6 +67,7 @@ opam_ci_resolve_opam_bin() {
     opam_url="https://github.com/ocaml/opam/releases/download/${download_version}/opam-${download_version}-${arch}"
     curl -fsSL "$opam_url" -o "$OPAM_BIN"
     chmod +x "$OPAM_BIN"
+    export PATH="$opam_dir:$PATH"
   elif [[ -n "${NATS_ML_OPAM_CI_OPAM_BIN:-}" ]]; then
     OPAM_BIN=$NATS_ML_OPAM_CI_OPAM_BIN
   elif [[ -x /usr/bin/opam-dev ]]; then
@@ -87,6 +93,17 @@ opam_ci_ensure_external_depext_plugin() {
 
   env -u OPAMROOT -u OPAMSWITCH opam install -y opam-depext
   eval "$(env -u OPAMROOT -u OPAMSWITCH opam env)"
+}
+
+opam_ci_depext() {
+  local package_version=$1
+
+  if ! command -v opam-depext >/dev/null 2>&1; then
+    echo "opam-depext is required for opam 2.0 compatibility checks." >&2
+    exit 1
+  fi
+
+  opam-depext -y --with-test "$package_version"
 }
 
 opam_ci_configure_solver() {
@@ -198,9 +215,9 @@ opam_ci_run_mode() {
       "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
       ;;
     with-test-opam20)
-      (opam_ci_opam depext -y --with-test "$package_version" && \
+      (opam_ci_depext "$package_version" && \
         "$opam_cmd" reinstall "$@" --with-test "$package_version") || true
-      opam_ci_opam depext -y --with-test "$package_version"
+      opam_ci_depext "$package_version"
       "$opam_cmd" reinstall "$@" --with-test --verbose "$package_version"
       ;;
   esac
