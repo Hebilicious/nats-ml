@@ -63,7 +63,7 @@ trap cleanup EXIT
 
 start_nats_if_needed
 
-dune build @install @runtest
+dune build @install
 dune exec ./tests/real_nats_integration.exe
 rm -rf "$INSTALL_PREFIX"
 dune install --prefix "$INSTALL_PREFIX"

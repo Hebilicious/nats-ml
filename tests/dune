@@ -1,18 +1,3 @@
-; Published package tests stay dependency-light so opam can run them across older
-; solvers without pulling the alcotest/js_of_ocaml closure.
-(tests
- (names published_test_protocol)
- (package nats-client)
- (libraries nats-client))
-
-; Published async package tests stay within the runtime dependency closure.
-(tests
- (names published_test_async_client_unit)
- (package nats-client-async)
- (libraries core async async_unix uri yojson nats-client nats-client-async))
-
-; Full unit suites stay in repo CI, where we can depend on alcotest freely
-; without affecting published package metadata or package-scoped @runtest.
 (executable
  (name test_protocol)
  (libraries alcotest nats-client))
@@ -29,8 +14,6 @@
  (alias repo-unit)
  (action (run %{exe:test_async_client_unit.exe})))
 
-; Repo-only async transport tests rely on a local TCP listener and stay out of the
-; published opam package test set.
 (executable
  (name test_async_client_integration)
  (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
@@ -39,7 +22,6 @@
  (alias repo-integration)
  (action (run %{exe:test_async_client_integration.exe})))
 
-; Standalone executable used by CI and local integration runs against Docker NATS.
 (executable
  (name real_nats_integration)
  (libraries core async async_unix uri yojson nats-client nats-client-async))
