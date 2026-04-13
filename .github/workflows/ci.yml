@@ -33,6 +33,30 @@ jobs:
       - name: Run tests
         run: dune build @install @repo-unit @repo-integration
 
+  package-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - nats-client
+          - nats-client-async
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup toolchain
+        uses: moonrepo/setup-toolchain@v0
+        with:
+          auto-install: true
+
+      - name: Install deps
+        run: opam install . --deps-only --yes
+
+      - name: Run published package tests
+        run: dune build -p "${{ matrix.package }}" @install @runtest
+
   published-opam-metadata:
     runs-on: ubuntu-latest
 
@@ -50,12 +74,12 @@ jobs:
           dune build nats-client.opam nats-client-async.opam
           git diff --exit-code -- nats-client.opam nats-client-async.opam
           ! grep -F '"alcotest"' nats-client.opam
-          ! grep -F '{with-test}' nats-client.opam
-          ! grep -F '"@runtest"' nats-client.opam
+          grep -F '"@runtest"' nats-client.opam
+          grep -F '{with-test}' nats-client.opam
           ! grep -F 'opam-version >= "2.1"' nats-client.opam
           grep -F 'available: [ os-distribution != "alpine" & arch != "riscv64" ]' nats-client-async.opam
           grep -F '"yojson" {>= "2.0.0"}' nats-client-async.opam
           ! grep -F '"alcotest"' nats-client-async.opam
-          ! grep -F '{with-test}' nats-client-async.opam
-          ! grep -F '"@runtest"' nats-client-async.opam
+          grep -F '"@runtest"' nats-client-async.opam
+          grep -F '{with-test}' nats-client-async.opam
           ! grep -F 'opam-version >= "2.1"' nats-client-async.opam
