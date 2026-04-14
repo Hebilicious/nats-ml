@@ -1,9 +1,0 @@
-.agents export-ignore
-.changes export-ignore
-.github export-ignore
-.gitignore export-ignore
-.ocaml-version export-ignore
-.prototools export-ignore
-AGENTS.md export-ignore
-scripts export-ignore
-tests export-ignore

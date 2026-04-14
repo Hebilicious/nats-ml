@@ -25,7 +25,7 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test}
+    "@published-package-tests" {with-test}
     "@doc" {with-doc}
   ]
 ]

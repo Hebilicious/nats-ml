@@ -3,8 +3,18 @@
  (package nats-client)
  (libraries nats-client))
 
+(alias
+ (name published-package-tests)
+ (package nats-client)
+ (deps (alias runtest-published_test_protocol)))
+
 (tests
  (names published_test_async_client_unit)
  (package nats-client-async)
  (modes byte)
  (libraries core async async_unix uri yojson nats-client nats-client-async))
+
+(alias
+ (name published-package-tests)
+ (package nats-client-async)
+ (deps (alias runtest-published_test_async_client_unit)))

@@ -57,7 +57,7 @@ jobs:
         run: opam install . --deps-only --yes
 
       - name: Run published package tests
-        run: dune build -p "${{ matrix.build_packages }}" @install @runtest
+        run: dune build -p "${{ matrix.build_packages }}" @install @published-package-tests
 
   published-opam-metadata:
     runs-on: ubuntu-latest
@@ -71,25 +71,27 @@ jobs:
         with:
           auto-install: true
 
+      - name: Install release tooling
+        run: opam install dune-release --yes
+
       - name: Verify generated opam metadata
         run: |
           dune build nats-client.opam nats-client-async.opam
           git diff --exit-code -- nats-client.opam nats-client-async.opam
-          git archive --worktree-attributes --format=tar.gz --prefix=nats-client-src/ HEAD > /tmp/nats-client-src.tar.gz
-          tar -tf /tmp/nats-client-src.tar.gz > /tmp/nats-client-src.lst
+          dune-release distrib
+          tar -tjf _build/*.tbz > /tmp/nats-client-src.lst
           ! grep -F '"alcotest"' nats-client.opam
-          grep -F '"@runtest"' nats-client.opam
+          ! grep -F '"@runtest"' nats-client.opam
+          grep -F '"@published-package-tests"' nats-client.opam
           grep -F '{with-test}' nats-client.opam
           grep -F 'available: [ os-distribution != "alpine" & arch != "riscv64" ]' nats-client-async.opam
           grep -F '"yojson" {>= "2.0.0"}' nats-client-async.opam
           ! grep -F '"alcotest"' nats-client-async.opam
-          grep -F '"@runtest"' nats-client-async.opam
+          ! grep -F '"@runtest"' nats-client-async.opam
+          grep -F '"@published-package-tests"' nats-client-async.opam
           grep -F '{with-test & arch != "s390x"}' nats-client-async.opam
+          grep -F '(name published-package-tests)' published-tests/dune
           grep -F '(modes byte)' published-tests/dune
-          grep -F 'nats-client-src/published-tests/dune' /tmp/nats-client-src.lst
-          grep -F 'nats-client-src/published-tests/published_test_protocol.ml' /tmp/nats-client-src.lst
-          grep -F 'nats-client-src/published-tests/published_test_async_client_unit.ml' /tmp/nats-client-src.lst
-          ! grep -F 'nats-client-src/tests/dune' /tmp/nats-client-src.lst
-          ! grep -F 'nats-client-src/tests/test_protocol.ml' /tmp/nats-client-src.lst
-          ! grep -F 'nats-client-src/.github/workflows/ci.yml' /tmp/nats-client-src.lst
-          ! grep -F 'nats-client-src/.agents/skills/git-commit/SKILL.md' /tmp/nats-client-src.lst
+          grep -F 'published-tests/dune' /tmp/nats-client-src.lst
+          grep -F 'published-tests/published_test_protocol.ml' /tmp/nats-client-src.lst
+          grep -F 'published-tests/published_test_async_client_unit.ml' /tmp/nats-client-src.lst

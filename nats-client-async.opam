@@ -32,7 +32,7 @@ build: [
     "-j"
     jobs
     "@install"
-    "@runtest" {with-test & arch != "s390x"}
+    "@published-package-tests" {with-test & arch != "s390x"}
     "@doc" {with-doc}
   ]
 ]

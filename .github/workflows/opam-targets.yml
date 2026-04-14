@@ -7,7 +7,37 @@ on:
   pull_request:
 
 jobs:
+  dist:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup toolchain
+        uses: moonrepo/setup-toolchain@v0
+        with:
+          auto-install: true
+
+      - name: Install release tooling
+        run: opam install dune-release --yes
+
+      - name: Build distribution tarball
+        run: |
+          dune build nats-client.opam nats-client-async.opam
+          git diff --exit-code -- nats-client.opam nats-client-async.opam
+          dune-release distrib
+          tar -tjf _build/*.tbz | grep -F 'published-tests/published_test_protocol.ml'
+          tar -tjf _build/*.tbz | grep -F 'published-tests/published_test_async_client_unit.ml'
+
+      - name: Upload distribution tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dist
+          path: _build/*.tbz
+
   opam-target:
+    needs: dist
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -66,23 +96,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Download distribution tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dist
+          path: .opam-source
+
       - name: Setup QEMU
         if: matrix.platform != 'linux/amd64'
         uses: docker/setup-qemu-action@v3
         with:
           platforms: s390x
 
-      - name: Create source archive
-        run: |
-          mkdir -p .opam-source
-          git archive --worktree-attributes --format=tar.gz \
-            --prefix=nats-client-src/ HEAD > .opam-source/source.tar.gz
-
       - name: Restore opam download cache
         uses: actions/cache@v4
         with:
           path: .opam-download-cache/${{ matrix.target }}-${{ matrix.package }}
-          key: opam-targets-${{ matrix.target }}-${{ matrix.package }}-${{ hashFiles('.gitattributes', 'dune-project', 'lib/**', 'async/**', 'published-tests/**', 'tests/**', 'nats-client.opam', 'nats-client-async.opam', '.github/workflows/opam-targets.yml') }}
+          key: opam-targets-${{ matrix.target }}-${{ matrix.package }}-${{ hashFiles('dune-project', 'lib/**', 'async/**', 'published-tests/**', 'tests/**', 'nats-client.opam', 'nats-client-async.opam', 'scripts/prepare-release.sh', '.github/workflows/opam-targets.yml') }}
           restore-keys: |
             opam-targets-${{ matrix.target }}-${{ matrix.package }}-
 
@@ -119,7 +149,7 @@ jobs:
               fi
 
               mkdir /tmp/src
-              tar -xzf /archive/source.tar.gz -C /tmp/src --strip-components=1
+              tar -xjf /archive/*.tbz -C /tmp/src --strip-components=1
               cd /tmp/src
 
               run_opam pin add --yes --no-action -k path nats-client .
