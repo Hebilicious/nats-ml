@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.6 - 2026-04-14
+
+
+- Restore lightweight published package tests and keep the mirrored opam target checks minimal so opam releases still exercise the installed packages.
+
+
 ## 0.0.5 - 2026-04-11
 
 
