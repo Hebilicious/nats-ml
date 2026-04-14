@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.7 - 2026-04-14
+
+
+- Skip published package tests on opam 2.0 and make the async package smoke test bytecode-only so opam-ci matches supported targets more closely.
+
+
 ## 0.0.6 - 2026-04-14
 
 
