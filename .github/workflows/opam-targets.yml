@@ -34,25 +34,25 @@ jobs:
           - target: x86_32-ocaml-4.14
             package: nats-client-async
             image: ocaml/opam:debian-13-ocaml-4.14
-            opam_bin: opam
+            opam_bin: opam-dev
             arch_runner: /usr/bin/linux32
             mode: with-test
           - target: alpine-3.22-ocaml-4.14
             package: nats-client
             image: ocaml/opam:alpine-3.22-ocaml-4.14
-            opam_bin: opam
+            opam_bin: opam-dev
             arch_runner: ""
             mode: with-test
           - target: alpine-3.22-ocaml-4.14
             package: nats-client-async
             image: ocaml/opam:alpine-3.22-ocaml-4.14
-            opam_bin: opam
+            opam_bin: opam-dev
             arch_runner: ""
             mode: unavailable
           - target: opensuse-15.6-ocaml-5.4
             package: nats-client-async
             image: ocaml/opam:opensuse-15.6-ocaml-5.4
-            opam_bin: opam
+            opam_bin: opam-dev
             arch_runner: ""
             mode: with-test
 
