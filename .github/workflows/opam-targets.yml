@@ -15,34 +15,46 @@ jobs:
         include:
           - target: opam-2.0-ocaml-4.14
             package: nats-client-async
-            image: ocaml/opam:ubuntu-24.04-ocaml-4.14
+            image: ocaml/opam:debian-13-ocaml-4.14
             opam_bin: opam-2.0
-            expect: install
+            arch_runner: ""
+            mode: install
           - target: opam-2.0-ocaml-5.4
             package: nats-client
-            image: ocaml/opam:ubuntu-24.04-ocaml-5.4
+            image: ocaml/opam:debian-13-ocaml-5.4
             opam_bin: opam-2.0
-            expect: install
+            arch_runner: ""
+            mode: install
           - target: opam-2.0-ocaml-5.4
             package: nats-client-async
-            image: ocaml/opam:ubuntu-24.04-ocaml-5.4
+            image: ocaml/opam:debian-13-ocaml-5.4
             opam_bin: opam-2.0
-            expect: install
+            arch_runner: ""
+            mode: install
+          - target: x86_32-ocaml-4.14
+            package: nats-client-async
+            image: ocaml/opam:debian-13-ocaml-4.14
+            opam_bin: opam
+            arch_runner: /usr/bin/linux32
+            mode: with-test
           - target: alpine-3.22-ocaml-4.14
             package: nats-client
             image: ocaml/opam:alpine-3.22-ocaml-4.14
             opam_bin: opam
-            expect: install
+            arch_runner: ""
+            mode: with-test
           - target: alpine-3.22-ocaml-4.14
             package: nats-client-async
             image: ocaml/opam:alpine-3.22-ocaml-4.14
             opam_bin: opam
-            expect: unavailable
+            arch_runner: ""
+            mode: unavailable
           - target: opensuse-15.6-ocaml-5.4
             package: nats-client-async
             image: ocaml/opam:opensuse-15.6-ocaml-5.4
             opam_bin: opam
-            expect: install
+            arch_runner: ""
+            mode: with-test
 
     steps:
       - name: Checkout
@@ -71,29 +83,50 @@ jobs:
               set -eu
               OPAM_BIN="${{ matrix.opam_bin }}"
               PACKAGE="${{ matrix.package }}"
-              EXPECT="${{ matrix.expect }}"
+              MODE="${{ matrix.mode }}"
+              ARCH_RUNNER="${{ matrix.arch_runner }}"
+
+              run_opam() {
+                if [ -n "$ARCH_RUNNER" ]; then
+                  "$ARCH_RUNNER" "$OPAM_BIN" "$@"
+                else
+                  "$OPAM_BIN" "$@"
+                fi
+              }
 
               command -v "$OPAM_BIN"
-              "$OPAM_BIN" --version
+              run_opam --version
 
               if [ "$OPAM_BIN" = "opam-2.0" ]; then
-                "$OPAM_BIN" --version | grep "^2.0"
+                run_opam --version | grep "^2.0"
               fi
 
-              "$OPAM_BIN" pin add --yes --no-action -k path nats-client /src
-              "$OPAM_BIN" pin add --yes --no-action -k path nats-client-async /src
+              run_opam init -ni
 
-              if [ "$EXPECT" = install ]; then
-                "$OPAM_BIN" install --yes --with-test "$PACKAGE"
-                exit 0
+              if [ "$ARCH_RUNNER" = "/usr/bin/linux32" ]; then
+                run_opam option solver=builtin-0install
               fi
 
-              if "$OPAM_BIN" install --yes --with-test "$PACKAGE" > /tmp/opam.log 2>&1; then
-                cat /tmp/opam.log
-                echo "expected $PACKAGE to be unavailable on ${{ matrix.target }}" >&2
-                exit 1
-              fi
+              run_opam pin add --yes --no-action -k path nats-client /src
+              run_opam pin add --yes --no-action -k path nats-client-async /src
 
-              cat /tmp/opam.log
-              grep -Ei "not available|availability" /tmp/opam.log
+              case "$MODE" in
+                install)
+                  run_opam install --yes "$PACKAGE"
+                  ;;
+                with-test)
+                  run_opam install --yes "$PACKAGE"
+                  run_opam reinstall --yes --with-test "$PACKAGE"
+                  ;;
+                unavailable)
+                  if run_opam install --yes --with-test "$PACKAGE" > /tmp/opam.log 2>&1; then
+                    cat /tmp/opam.log
+                    echo "expected $PACKAGE to be unavailable on ${{ matrix.target }}" >&2
+                    exit 1
+                  fi
+
+                  cat /tmp/opam.log
+                  grep -Ei "not available|availability" /tmp/opam.log
+                  ;;
+              esac
             '
