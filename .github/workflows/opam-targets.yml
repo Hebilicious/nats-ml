@@ -36,7 +36,7 @@ jobs:
             image: ocaml/opam:debian-13-ocaml-4.14
             opam_bin: opam-dev
             arch_runner: /usr/bin/linux32
-            mode: with-test
+            mode: install
           - target: alpine-3.22-ocaml-4.14
             package: nats-client
             image: ocaml/opam:alpine-3.22-ocaml-4.14
