@@ -77,11 +77,10 @@ jobs:
           git diff --exit-code -- nats-client.opam nats-client-async.opam
           ! grep -F '"alcotest"' nats-client.opam
           grep -F '"@runtest"' nats-client.opam
-          grep -F '{with-test}' nats-client.opam
-          ! grep -F 'opam-version >= "2.1"' nats-client.opam
+          grep -F '{with-test & opam-version >= "2.1"}' nats-client.opam
           grep -F 'available: [ os-distribution != "alpine" & arch != "riscv64" ]' nats-client-async.opam
           grep -F '"yojson" {>= "2.0.0"}' nats-client-async.opam
           ! grep -F '"alcotest"' nats-client-async.opam
           grep -F '"@runtest"' nats-client-async.opam
-          grep -F '{with-test}' nats-client-async.opam
-          ! grep -F 'opam-version >= "2.1"' nats-client-async.opam
+          grep -F '{with-test & opam-version >= "2.1" & arch != "x86_32" & arch != "arm32" & arch != "ppc64"}' nats-client-async.opam
+          grep -F '(modes byte)' tests/dune
