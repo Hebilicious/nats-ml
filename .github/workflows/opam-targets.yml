@@ -82,7 +82,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .opam-download-cache/${{ matrix.target }}-${{ matrix.package }}
-          key: opam-targets-${{ matrix.target }}-${{ matrix.package }}-${{ hashFiles('nats-client.opam', 'nats-client-async.opam', '.github/workflows/opam-targets.yml') }}
+          key: opam-targets-${{ matrix.target }}-${{ matrix.package }}-${{ hashFiles('.gitattributes', 'dune-project', 'lib/**', 'async/**', 'published-tests/**', 'tests/**', 'nats-client.opam', 'nats-client-async.opam', '.github/workflows/opam-targets.yml') }}
           restore-keys: |
             opam-targets-${{ matrix.target }}-${{ matrix.package }}-
 

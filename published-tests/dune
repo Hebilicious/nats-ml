@@ -1,0 +1,10 @@
+(tests
+ (names published_test_protocol)
+ (package nats-client)
+ (libraries nats-client))
+
+(tests
+ (names published_test_async_client_unit)
+ (package nats-client-async)
+ (modes byte)
+ (libraries core async async_unix uri yojson nats-client nats-client-async))
