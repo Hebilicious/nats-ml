@@ -78,7 +78,7 @@ jobs:
         run: |
           dune build nats-client.opam nats-client-async.opam
           git diff --exit-code -- nats-client.opam nats-client-async.opam
-          dune-release distrib
+          opam exec -- dune-release distrib
           tar -tjf _build/*.tbz > /tmp/nats-client-src.lst
           ! grep -F '"alcotest"' nats-client.opam
           ! grep -F '"@runtest"' nats-client.opam

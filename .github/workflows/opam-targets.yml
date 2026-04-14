@@ -26,7 +26,7 @@ jobs:
         run: |
           dune build nats-client.opam nats-client-async.opam
           git diff --exit-code -- nats-client.opam nats-client-async.opam
-          dune-release distrib
+          opam exec -- dune-release distrib
           tar -tjf _build/*.tbz | grep -F 'published-tests/published_test_protocol.ml'
           tar -tjf _build/*.tbz | grep -F 'published-tests/published_test_async_client_unit.ml'
 
