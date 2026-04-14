@@ -73,7 +73,7 @@ jobs:
           CACHE_DIR: .opam-download-cache/${{ matrix.target }}-${{ matrix.package }}
         run: |
           mkdir -p "$CACHE_DIR"
-          chmod 777 "$CACHE_DIR"
+          chmod -R 777 "$CACHE_DIR"
           docker run --rm \
             -v "$PWD":/src \
             -v "$PWD/$CACHE_DIR:/home/opam/.opam/download-cache" \
