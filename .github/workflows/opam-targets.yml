@@ -17,48 +17,66 @@ jobs:
             package: nats-client-async
             image: ocaml/opam:debian-13-ocaml-4.14
             opam_bin: opam-2.0
-            arch_runner: ""
-            mode: install
+            platform: linux/amd64
+            mode: with-test
           - target: opam-2.0-ocaml-5.4
             package: nats-client
             image: ocaml/opam:debian-13-ocaml-5.4
             opam_bin: opam-2.0
-            arch_runner: ""
-            mode: install
+            platform: linux/amd64
+            mode: with-test
           - target: opam-2.0-ocaml-5.4
             package: nats-client-async
             image: ocaml/opam:debian-13-ocaml-5.4
             opam_bin: opam-2.0
-            arch_runner: ""
-            mode: install
+            platform: linux/amd64
+            mode: with-test
           - target: x86_32-ocaml-4.14
             package: nats-client-async
             image: ocaml/opam:debian-13-ocaml-4.14
             opam_bin: opam-dev
-            arch_runner: /usr/bin/linux32
+            platform: linux/amd64
             mode: install
           - target: alpine-3.22-ocaml-4.14
             package: nats-client
             image: ocaml/opam:alpine-3.22-ocaml-4.14
             opam_bin: opam-dev
-            arch_runner: ""
+            platform: linux/amd64
             mode: with-test
           - target: alpine-3.22-ocaml-4.14
             package: nats-client-async
             image: ocaml/opam:alpine-3.22-ocaml-4.14
             opam_bin: opam-dev
-            arch_runner: ""
+            platform: linux/amd64
             mode: unavailable
           - target: opensuse-15.6-ocaml-5.4
             package: nats-client-async
             image: ocaml/opam:opensuse-15.6-ocaml-5.4
             opam_bin: opam-dev
-            arch_runner: ""
+            platform: linux/amd64
+            mode: with-test
+          - target: s390x-ocaml-4.14
+            package: nats-client-async
+            image: ocaml/opam:debian-13-ocaml-4.14
+            opam_bin: opam-dev
+            platform: linux/s390x
             mode: with-test
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Setup QEMU
+        if: matrix.platform != 'linux/amd64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: s390x
+
+      - name: Create source archive
+        run: |
+          mkdir -p .opam-source
+          git archive --worktree-attributes --format=tar.gz \
+            --prefix=nats-client-src/ HEAD > .opam-source/source.tar.gz
 
       - name: Restore opam download cache
         uses: actions/cache@v4
@@ -75,24 +93,17 @@ jobs:
           mkdir -p "$CACHE_DIR"
           chmod -R 777 "$CACHE_DIR"
           docker run --rm \
-            -v "$PWD":/src \
+            --platform "${{ matrix.platform }}" \
+            -v "$PWD/.opam-source":/archive:ro \
             -v "$PWD/$CACHE_DIR:/home/opam/.opam/download-cache" \
-            -w /src \
             "${{ matrix.image }}" \
             sh -lc '
               set -eu
               OPAM_BIN="${{ matrix.opam_bin }}"
               PACKAGE="${{ matrix.package }}"
               MODE="${{ matrix.mode }}"
-              ARCH_RUNNER="${{ matrix.arch_runner }}"
-
-              run_opam() {
-                if [ -n "$ARCH_RUNNER" ]; then
-                  "$ARCH_RUNNER" "$OPAM_BIN" "$@"
-                else
-                  "$OPAM_BIN" "$@"
-                fi
-              }
+              ln -sf "/usr/bin/$OPAM_BIN" /tmp/opam
+              run_opam() { /tmp/opam "$@"; }
 
               command -v "$OPAM_BIN"
               run_opam --version
@@ -103,12 +114,16 @@ jobs:
 
               run_opam init -ni
 
-              if [ "$ARCH_RUNNER" = "/usr/bin/linux32" ]; then
+              if [ "$OPAM_BIN" != "opam-2.0" ]; then
                 run_opam option solver=builtin-0install
               fi
 
-              run_opam pin add --yes --no-action -k path nats-client /src
-              run_opam pin add --yes --no-action -k path nats-client-async /src
+              mkdir /tmp/src
+              tar -xzf /archive/source.tar.gz -C /tmp/src --strip-components=1
+              cd /tmp/src
+
+              run_opam pin add --yes --no-action -k path nats-client .
+              run_opam pin add --yes --no-action -k path nats-client-async .
 
               case "$MODE" in
                 install)
@@ -116,7 +131,8 @@ jobs:
                   ;;
                 with-test)
                   run_opam install --yes "$PACKAGE"
-                  run_opam reinstall --yes --with-test "$PACKAGE"
+                  run_opam depext --yes --with-test "$PACKAGE"
+                  run_opam reinstall --yes --with-test --verbose "$PACKAGE"
                   ;;
                 unavailable)
                   if run_opam install --yes --with-test "$PACKAGE" > /tmp/opam.log 2>&1; then
