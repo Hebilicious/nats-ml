@@ -1,27 +1,34 @@
 (executable
  (name test_protocol)
+ (enabled_if (= %{profile} dev))
  (libraries alcotest nats-client))
 
 (rule
+ (enabled_if (= %{profile} dev))
  (alias repo-unit)
  (action (run %{exe:test_protocol.exe})))
 
 (executable
  (name test_async_client_unit)
+ (enabled_if (= %{profile} dev))
  (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
 
 (rule
+ (enabled_if (= %{profile} dev))
  (alias repo-unit)
  (action (run %{exe:test_async_client_unit.exe})))
 
 (executable
  (name test_async_client_integration)
+ (enabled_if (= %{profile} dev))
  (libraries alcotest core async async_unix uri yojson nats-client nats-client-async))
 
 (rule
+ (enabled_if (= %{profile} dev))
  (alias repo-integration)
  (action (run %{exe:test_async_client_integration.exe})))
 
 (executable
  (name real_nats_integration)
+ (enabled_if (= %{profile} dev))
  (libraries core async async_unix uri yojson nats-client nats-client-async))
