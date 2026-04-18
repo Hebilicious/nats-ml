@@ -1,0 +1,57 @@
+{0 NATS Client}
+
+[nats-client] provides runtime-independent NATS protocol primitives for OCaml.
+It encodes client commands, parses server control lines, represents message
+headers, and provides subscription id helpers.
+
+Use this package when you need protocol-level building blocks or want to adapt
+NATS support to a different runtime.
+
+For normal application usage with Jane Street Async, install
+[nats-client-async]. That package provides the TCP client, reconnect loop,
+subscriptions, publishing, and request/reply API built on top of these protocol
+primitives.
+
+{1 Protocol Encoding}
+
+{[
+let frame =
+  Nats_client.Protocol.encode_pub
+    ~subject:"events.created"
+    "created"
+]}
+
+Use [encode_hpub] when the message should include NATS headers:
+
+{[
+let headers =
+  Nats_client.Headers.empty
+  |> Nats_client.Headers.add ~name:"content-type" ~value:"application/json"
+
+let frame =
+  Nats_client.Protocol.encode_hpub
+    ~subject:"events.created"
+    ~headers
+    {|"created"|}
+]}
+
+{1 Server Lines}
+
+The protocol parser handles server control lines after the runtime has removed
+the trailing CRLF:
+
+{[
+match Nats_client.Protocol.parse_server_line "PING" with
+| Nats_client.Protocol.Ping -> Nats_client.Protocol.encode_pong ()
+| _ -> ""
+]}
+
+Payload bytes for [MSG] and [HMSG] frames are read separately by the runtime
+client after parsing the metadata line.
+
+{1 Modules}
+
+{ul
+ {- [Nats_client.Protocol] contains protocol types, encoders, and parsers.}
+ {- [Nats_client.Headers] represents ordered, repeatable NATS headers.}
+ {- [Nats_client.Sid] creates subscription ids.}}
