@@ -33,5 +33,5 @@
   async
   async_unix
   uri
-  (yojson (>= 2.0.0))
+  (yojson (>= 1.7.0))
   nats-client))
