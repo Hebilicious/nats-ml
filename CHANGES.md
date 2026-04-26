@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.9 - 2026-04-26
+
+
+- Add package documentation landing pages and public API docs for ocaml.org.
+- Relax the nats-client-async Yojson dependency lower bound to 1.7.0.
+
+
 ## 0.0.8 - 2026-04-20
 
 
