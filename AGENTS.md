@@ -6,6 +6,7 @@
 - After the toolchain is installed, run `dune`, `opam`, and related commands directly from a shell where the proto-managed tools are on `PATH`.
 - Keep generated `nats-client.opam` and `nats-client-async.opam` committed and in sync with `dune-project`.
 - Do not hand-edit generated opam files unless you are intentionally changing package metadata in `dune-project` and then rebuilding them.
+- Pull request titles should follow the same Conventional Commit format used by the `git-commit` skill, for example `ci: exclude s390x from async runtest metadata`.
 
 ## Release Workflow
 
