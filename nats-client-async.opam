@@ -15,7 +15,7 @@ depends: [
   "async_unix"
   "uri"
   "yojson" {>= "1.7.0"}
-  "nats-client"
+  "nats-client" {= version}
   "odoc" {with-doc}
 ]
 dev-repo: "git+https://github.com/hebilicious/nats-ml.git"
