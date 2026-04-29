@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.10 - 2026-04-29
+
+
+- Make `nats-client-async` depend on the matching `nats-client` version in generated opam metadata.
+
+
 ## 0.0.9 - 2026-04-26
 
 
