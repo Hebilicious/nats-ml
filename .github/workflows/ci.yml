@@ -80,6 +80,7 @@ jobs:
           grep -F '{with-test & opam-version >= "2.1"}' nats-client.opam
           grep -F 'available: [ os-distribution != "alpine" & arch != "riscv64" ]' nats-client-async.opam
           grep -F '"yojson" {>= "1.7.0"}' nats-client-async.opam
+          grep -F '"nats-client" {= version}' nats-client-async.opam
           ! grep -F '"alcotest"' nats-client-async.opam
           grep -F '"@runtest"' nats-client-async.opam
           grep -F '{with-test & opam-version >= "2.1" & arch != "x86_32" & arch != "arm32" & arch != "ppc64" & arch != "s390x"}' nats-client-async.opam
